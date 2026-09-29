@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Menu - RestaurantAI{% endblock %}
+{% block page_title %}Menu Management{% endblock %}
+{% block page_subtitle %}Categories, items, availability{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    {% if user.role == 'owner' or user.role == 'manager' or user.is_superuser %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+            <h3 class="font-semibold mb-3">Add Category</h3>
+            <form method="post" action="{% url 'category_create' %}" class="flex gap-2">
+                {% csrf_token %}
+                <input name="name" required placeholder="Category name" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm">
+                <button type="submit" class="px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium">Add</button>
+            </form>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+            <h3 class="font-semibold mb-3">Add Menu Item</h3>
+            <form method="post" action="{% url 'menu_item_create' %}" class="space-y-2">
+                {% csrf_token %}
+                <div class="flex gap-2">
+                    <input name="name" required placeholder="Item name" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm">
+                    <input name="price" type="number" step="0.01" required placeholder="Price" class="w-24 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm">
+                </div>
+                <div class="flex gap-2">
+                    <select name="category_id" required class="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm">
+                        {% for c in all_categories %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium">Add Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% for category in categories %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <h3 class="font-semibold text-lg">{{ category.name }}</h3>
+            <span class="text-sm text-slate-500">{{ category.items.count }} items</span>
+        </div>
+        <div class="divide-y divide-slate-100 dark:divide-slate-700">
+            {% for item in category.items.all %}
+            <div class="px-5 py-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xl">🍽️</div>
+                    <div>
+                        <p class="font-medium">{{ item.name }}</p>
+                        <p class="text-sm text-slate-500">{{ item.description|truncatechars:60 }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="font-semibold text-sky-600">${{ item.price }}</span>
+                    {% if user.role == 'owner' or user.role == 'manager' or user.is_superuser %}
+                    <form method="post" action="{% url 'menu_item_toggle' item.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="px-2.5 py-0.5 rounded-full text-xs font-medium transition
+                            {% if item.is_available %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 hover:bg-red-100 hover:text-red-700
+                            {% else %}bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 hover:bg-emerald-100 hover:text-emerald-700{% endif %}">
+                            {% if item.is_available %}Available{% else %}Unavailable{% endif %}
+                        </button>
+                    </form>
+                    {% else %}
+                    {% if item.is_available %}
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Available</span>
+                    {% else %}
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Unavailable</span>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <p class="px-5 py-6 text-slate-400 text-sm">No items in this category</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-20 text-slate-400">No menu categories yet.</div>
+    {% endfor %}
+</div>
+{% endblock %}

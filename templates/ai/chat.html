@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}AI Assistant - RestaurantAI{% endblock %}
+{% block page_title %}AI Assistant{% endblock %}
+{% block page_subtitle %}Ask anything about your restaurant{% endblock %}
+
+{% block content %}
+<div class="flex gap-6 h-[calc(100vh-11rem)] animate-fade-in">
+    <!-- Chat Area -->
+    <div class="flex-1 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden">
+        <!-- Messages -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <div class="flex gap-3">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="bg-slate-100 dark:bg-slate-700 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                    <p class="text-sm">👋 Hello! I'm your Restaurant AI Assistant.</p>
+                    <p class="text-sm mt-2">I can help you with sales insights, inventory alerts, menu recommendations, and more. Try asking:</p>
+                    <ul class="text-sm mt-2 space-y-1 text-sky-600 dark:text-sky-400">
+                        <li>• "How are sales today?"</li>
+                        <li>• "What items are low in stock?"</li>
+                        <li>• "Suggest a promotion for this week"</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Input -->
+        <div class="p-4 border-t border-slate-200 dark:border-slate-700">
+            <form id="chat-form" class="flex gap-3">
+                <input type="text" id="chat-input" placeholder="Ask me anything about the restaurant..." autocomplete="off"
+                       class="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+                <button type="submit" class="px-5 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-medium shadow-md hover:shadow-lg transition">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const form = document.getElementById('chat-form');
+const input = document.getElementById('chat-input');
+const messages = document.getElementById('chat-messages');
+let conversationId = null;
+
+function addMessage(role, content) {
+    const div = document.createElement('div');
+    div.className = 'flex gap-3 ' + (role === 'user' ? 'flex-row-reverse' : '');
+    
+    const avatar = role === 'user' 
+        ? `<div class="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white flex-shrink-0 text-sm font-semibold">U</div>`
+        : `<div class="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0"><i class="bi bi-robot"></i></div>`;
+    
+    const bubbleClass = role === 'user'
+        ? 'bg-sky-500 text-white rounded-2xl rounded-tr-sm'
+        : 'bg-slate-100 dark:bg-slate-700 rounded-2xl rounded-tl-sm';
+    
+    // Simple markdown-like formatting
+    let formatted = content
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+    
+    div.innerHTML = `
+        ${avatar}
+        <div class="${bubbleClass} px-4 py-3 max-w-[80%] text-sm">${formatted}</div>
+    `;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+    
+    addMessage('user', message);
+    input.value = '';
+    input.disabled = true;
+    
+    // Typing indicator
+    const typing = document.createElement('div');
+    typing.id = 'typing';
+    typing.className = 'flex gap-3';
+    typing.innerHTML = `
+        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0"><i class="bi bi-robot"></i></div>
+        <div class="bg-slate-100 dark:bg-slate-700 rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-slate-500">Thinking...</div>
+    `;
+    messages.appendChild(typing);
+    messages.scrollTop = messages.scrollHeight;
+    
+    try {
+        const res = await fetch('{% url "api_ai_chat" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ message, conversation_id: conversationId })
+        });
+        const data = await res.json();
+        document.getElementById('typing')?.remove();
+        
+        if (data.reply) {
+            addMessage('assistant', data.reply);
+            conversationId = data.conversation_id;
+        } else {
+            addMessage('assistant', data.error || 'Something went wrong.');
+        }
+    } catch (err) {
+        document.getElementById('typing')?.remove();
+        addMessage('assistant', 'Connection error. Please try again.');
+    }
+    
+    input.disabled = false;
+    input.focus();
+});
+</script>
+{% endblock %}

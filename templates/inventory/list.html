@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Inventory - RestaurantAI{% endblock %}
+{% block page_title %}Inventory{% endblock %}
+{% block page_subtitle %}{{ low_stock_count }} items need attention{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    {% if user.role == 'owner' or user.role == 'manager' or user.role == 'cashier' or user.is_superuser %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <h3 class="font-semibold mb-3">Adjust Stock</h3>
+        <form method="post" action="{% url 'stock_adjust' %}" class="flex flex-wrap gap-3 items-end">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Ingredient</label>
+                <select name="ingredient_id" required class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm min-w-[160px]">
+                    {% for i in ingredients %}
+                    <option value="{{ i.id }}">{{ i.name }} ({{ i.current_stock }} {{ i.unit }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Qty (+/-)</label>
+                <input name="quantity" type="number" step="0.01" required placeholder="e.g. 5 or -2" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm w-28">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Reason</label>
+                <select name="reason" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm">
+                    {% for val, label in reason_choices %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Notes</label>
+                <input name="notes" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm w-40">
+            </div>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium">Adjust</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500">
+                    <tr>
+                        <th class="text-left px-5 py-3 font-medium">Ingredient</th>
+                        <th class="text-left px-5 py-3 font-medium">Current Stock</th>
+                        <th class="text-left px-5 py-3 font-medium">Min. Level</th>
+                        <th class="text-left px-5 py-3 font-medium">Cost/Unit</th>
+                        <th class="text-left px-5 py-3 font-medium">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    {% for item in ingredients %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
+                        <td class="px-5 py-3 font-medium">{{ item.name }}</td>
+                        <td class="px-5 py-3">{{ item.current_stock }} {{ item.unit }}</td>
+                        <td class="px-5 py-3">{{ item.minimum_stock }} {{ item.unit }}</td>
+                        <td class="px-5 py-3">${{ item.cost_per_unit }}</td>
+                        <td class="px-5 py-3">
+                            {% if item.is_low_stock %}
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">Low Stock</span>
+                            {% else %}
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">OK</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="px-5 py-12 text-center text-slate-400">No ingredients yet</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if recent_adjustments %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700"><h3 class="font-semibold">Recent Adjustments</h3></div>
+        <div class="divide-y divide-slate-100 dark:divide-slate-700">
+            {% for a in recent_adjustments %}
+            <div class="px-5 py-3 flex justify-between text-sm">
+                <span><strong>{{ a.ingredient.name }}</strong>: {% if a.quantity_change >= 0 %}+{% endif %}{{ a.quantity_change }} ({{ a.get_reason_display }})</span>
+                <span class="text-slate-400">{{ a.adjusted_by.username|default:"—" }} · {{ a.created_at|timesince }} ago</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

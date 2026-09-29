@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Tables - RestaurantAI{% endblock %}
+{% block page_title %}Table & Floor Management{% endblock %}
+{% block page_subtitle %}Manage tables, status, and waiter assignments{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Create Table -->
+    {% if user.role == 'owner' or user.role == 'manager' or user.role == 'cashier' or user.is_superuser %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <h3 class="font-semibold mb-3">Add Table</h3>
+        <form method="post" action="{% url 'table_create' %}" class="flex flex-wrap gap-3 items-end">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Number</label>
+                <input name="number" required class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm w-28" placeholder="e.g. 12">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Capacity</label>
+                <input name="capacity" type="number" value="4" min="1" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm w-24">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Location / Zone</label>
+                <input name="location" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm w-40" placeholder="Indoor, Patio...">
+            </div>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium">Add Table</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Tables Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for table in tables %}
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 card-hover" id="table-card-{{ table.id }}">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-bold">Table {{ table.number }}</h3>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium
+                    {% if table.status == 'available' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300
+                    {% elif table.status == 'occupied' %}bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300
+                    {% elif table.status == 'reserved' %}bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300
+                    {% else %}bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300{% endif %}"
+                    id="status-badge-{{ table.id }}">
+                    {{ table.get_status_display }}
+                </span>
+            </div>
+            <p class="text-sm text-slate-500 mb-1">Capacity: {{ table.capacity }}</p>
+            <p class="text-sm text-slate-500 mb-3">{{ table.location|default:"—" }}</p>
+            <p class="text-xs text-slate-400 mb-3">Waiter: {{ table.assigned_waiter.get_full_name|default:table.assigned_waiter.username|default:"Unassigned" }}</p>
+            
+            <div class="flex flex-wrap gap-1.5">
+                {% for value, label in status_choices %}
+                <button onclick="setTableStatus({{ table.id }}, '{{ value }}')"
+                        class="px-2 py-1 rounded text-xs border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition
+                        {% if table.status == value %}bg-sky-100 border-sky-300 text-sky-700 dark:bg-sky-900/40{% endif %}">
+                    {{ label }}
+                </button>
+                {% endfor %}
+            </div>
+            
+            {% if user.role == 'owner' or user.role == 'manager' or user.is_superuser %}
+            <form method="post" action="{% url 'table_assign_waiter' table.id %}" class="mt-3 flex gap-2">
+                {% csrf_token %}
+                <select name="waiter_id" class="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-xs">
+                    <option value="">Unassigned</option>
+                    {% for w in waiters %}
+                    <option value="{{ w.id }}" {% if table.assigned_waiter_id == w.id %}selected{% endif %}>{{ w.get_full_name|default:w.username }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="px-2 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-xs font-medium">Assign</button>
+            </form>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12 text-slate-400">No tables yet. Add one above.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function setTableStatus(tableId, status) {
+    const res = await fetch(`/api/tables/${tableId}/status/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify({ status }),
+    });
+    const data = await res.json();
+    if (data.success) location.reload();
+    else alert(data.error || 'Failed');
+}
+</script>
+{% endblock %}

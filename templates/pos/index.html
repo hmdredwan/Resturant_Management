@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block title %}POS - RestaurantAI{% endblock %}
+{% block page_title %}Point of Sale{% endblock %}
+{% block page_subtitle %}Take orders quickly{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in">
+    <!-- Menu Section -->
+    <div class="xl:col-span-2 space-y-4">
+        <!-- Categories filter -->
+        <div class="flex flex-wrap gap-2" id="category-filters">
+            <button data-category="all" class="cat-btn px-4 py-2 rounded-full bg-sky-500 text-white text-sm font-medium transition">All</button>
+            {% for cat in categories %}
+            <button data-category="{{ cat.id }}" class="cat-btn px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium hover:border-sky-400 transition">
+                {{ cat.name }}
+            </button>
+            {% endfor %}
+        </div>
+        
+        <!-- Menu Items Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="menu-grid">
+            {% for item in menu_items %}
+            <div class="menu-item bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 card-hover cursor-pointer"
+                 data-id="{{ item.id }}"
+                 data-name="{{ item.name }}"
+                 data-price="{{ item.price }}"
+                 data-category="{{ item.category_id }}">
+                <div class="aspect-square rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 mb-2 flex items-center justify-center text-3xl">
+                    🍽️
+                </div>
+                <h4 class="font-medium text-sm truncate">{{ item.name }}</h4>
+                <p class="text-sky-600 font-semibold text-sm mt-0.5">${{ item.price }}</p>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12 text-slate-400">
+                <p class="text-lg mb-2">No menu items yet</p>
+                <p class="text-sm">Add items from Django admin or run sample data</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Order Cart -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col h-[calc(100vh-12rem)] sticky top-24">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-700 space-y-3">
+            <h3 class="font-semibold">Current Order</h3>
+            <select id="table-select" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                <option value="">Select Table (optional)</option>
+                {% for table in tables %}
+                <option value="{{ table.id }}" {% if table.is_occupied %}disabled{% endif %}>
+                    Table {{ table.number }} {% if table.is_occupied %}(Occupied){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+            <select id="order-type" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                <option value="dine_in">Dine In</option>
+                <option value="takeaway">Takeaway</option>
+                <option value="delivery">Delivery</option>
+            </select>
+        </div>
+        
+        <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-2">
+            <p id="empty-cart" class="text-center text-slate-400 text-sm py-8">Click menu items to add them</p>
+        </div>
+        
+        <div class="p-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500">Subtotal</span>
+                <span id="subtotal">$0.00</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500">Tax (10%)</span>
+                <span id="tax">$0.00</span>
+            </div>
+            <div class="flex justify-between font-bold text-lg">
+                <span>Total</span>
+                <span id="total" class="text-sky-600">$0.00</span>
+            </div>
+            <button id="place-order-btn" disabled
+                    class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold shadow-md hover:shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed">
+                Place Order
+            </button>
+            <div id="order-message" class="hidden text-sm text-center py-2 rounded-lg"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const cart = {};  // { menuItemId: { id, name, price, quantity } }
+
+function updateCartUI() {
+    const container = document.getElementById('cart-items');
+    const emptyMsg = document.getElementById('empty-cart');
+    const items = Object.values(cart);
+    
+    if (items.length === 0) {
+        container.innerHTML = '<p id="empty-cart" class="text-center text-slate-400 text-sm py-8">Click menu items to add them</p>';
+        document.getElementById('place-order-btn').disabled = true;
+    } else {
+        container.innerHTML = items.map(item => `
+            <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium truncate">${item.name}</p>
+                    <p class="text-xs text-slate-500">$${item.price.toFixed(2)} each</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="changeQty(${item.id}, -1)" class="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-sm hover:bg-slate-300 dark:hover:bg-slate-600">−</button>
+                    <span class="w-6 text-center text-sm font-semibold">${item.quantity}</span>
+                    <button onclick="changeQty(${item.id}, 1)" class="w-7 h-7 rounded-full bg-sky-100 dark:bg-sky-900 text-sky-600 flex items-center justify-center text-sm hover:bg-sky-200">+</button>
+                </div>
+                <button onclick="removeItem(${item.id})" class="text-slate-400 hover:text-red-500 ml-1">
+                    <i class="bi bi-trash text-sm"></i>
+                </button>
+            </div>
+        `).join('');
+        document.getElementById('place-order-btn').disabled = false;
+    }
+    
+    // Totals
+    let subtotal = items.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+    let tax = subtotal * 0.10;
+    let total = subtotal + tax;
+    
+    document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+    document.getElementById('tax').textContent = '$' + tax.toFixed(2);
+    document.getElementById('total').textContent = '$' + total.toFixed(2);
+}
+
+function addToCart(id, name, price) {
+    if (cart[id]) {
+        cart[id].quantity += 1;
+    } else {
+        cart[id] = { id, name, price: parseFloat(price), quantity: 1 };
+    }
+    updateCartUI();
+}
+
+function changeQty(id, delta) {
+    if (!cart[id]) return;
+    cart[id].quantity += delta;
+    if (cart[id].quantity <= 0) delete cart[id];
+    updateCartUI();
+}
+
+function removeItem(id) {
+    delete cart[id];
+    updateCartUI();
+}
+
+// Click menu items
+document.querySelectorAll('.menu-item').forEach(el => {
+    el.addEventListener('click', () => {
+        addToCart(
+            parseInt(el.dataset.id),
+            el.dataset.name,
+            el.dataset.price
+        );
+        // Visual feedback
+        el.classList.add('ring-2', 'ring-sky-400');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-sky-400'), 200);
+    });
+});
+
+// Category filter
+document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-btn').forEach(b => {
+            b.classList.remove('bg-sky-500', 'text-white');
+            b.classList.add('bg-white', 'dark:bg-slate-800', 'border', 'border-slate-200', 'dark:border-slate-700');
+        });
+        btn.classList.add('bg-sky-500', 'text-white');
+        btn.classList.remove('bg-white', 'dark:bg-slate-800', 'border', 'border-slate-200', 'dark:border-slate-700');
+        
+        const cat = btn.dataset.category;
+        document.querySelectorAll('.menu-item').forEach(item => {
+            if (cat === 'all' || item.dataset.category === cat) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Place Order
+document.getElementById('place-order-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('place-order-btn');
+    const msg = document.getElementById('order-message');
+    const items = Object.values(cart).map(i => ({
+        menu_item_id: i.id,
+        quantity: i.quantity,
+    }));
+    
+    if (items.length === 0) return;
+    
+    btn.disabled = true;
+    btn.textContent = 'Placing...';
+    
+    try {
+        const res = await fetch('{% url "api_create_order" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({
+                items: items,
+                table_id: document.getElementById('table-select').value || null,
+                order_type: document.getElementById('order-type').value,
+            }),
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            msg.className = 'text-sm text-center py-2 rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300';
+            msg.textContent = data.message;
+            msg.classList.remove('hidden');
+            
+            // Clear cart
+            Object.keys(cart).forEach(k => delete cart[k]);
+            updateCartUI();
+            
+            // Disable the selected table option
+            const tableSelect = document.getElementById('table-select');
+            if (tableSelect.value) {
+                const opt = tableSelect.querySelector(`option[value="${tableSelect.value}"]`);
+                if (opt) {
+                    opt.disabled = true;
+                    opt.textContent += ' (Occupied)';
+                }
+                tableSelect.value = '';
+            }
+            
+            setTimeout(() => msg.classList.add('hidden'), 4000);
+        } else {
+            msg.className = 'text-sm text-center py-2 rounded-lg bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300';
+            msg.textContent = data.error || 'Failed to place order';
+            msg.classList.remove('hidden');
+        }
+    } catch (err) {
+        msg.className = 'text-sm text-center py-2 rounded-lg bg-red-100 text-red-700';
+        msg.textContent = 'Network error. Please try again.';
+        msg.classList.remove('hidden');
+    }
+    
+    btn.disabled = false;
+    btn.textContent = 'Place Order';
+});
+</script>
+{% endblock %}

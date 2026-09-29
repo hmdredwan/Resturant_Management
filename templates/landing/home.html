@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RestaurantAI — Fine Dining Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Playfair Display', 'Georgia', 'serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: { 50: '#fefdfb', 100: '#faf8f5', 200: '#f5f0e8', 300: '#ebe3d6' },
+                        gold: { 400: '#d4a574', 500: '#c4925a', 600: '#a87a45' },
+                        charcoal: { 700: '#3d3a36', 800: '#2c2a27', 900: '#1a1917' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .font-display { font-family: 'Playfair Display', Georgia, serif; }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideRight {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .animate-fade-up { animation: fadeUp 0.9s ease forwards; }
+        .animate-fade-in { animation: fadeIn 1s ease forwards; }
+        .animate-float { animation: float 5s ease-in-out infinite; }
+        .animate-scale-in { animation: scaleIn 0.8s ease forwards; }
+        .delay-1 { animation-delay: 0.15s; opacity: 0; }
+        .delay-2 { animation-delay: 0.3s; opacity: 0; }
+        .delay-3 { animation-delay: 0.45s; opacity: 0; }
+        .delay-4 { animation-delay: 0.6s; opacity: 0; }
+
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        .hero-overlay {
+            background: linear-gradient(135deg, rgba(254,253,251,0.92) 0%, rgba(250,248,245,0.75) 50%, rgba(254,253,251,0.85) 100%);
+        }
+
+        .gold-line {
+            width: 60px; height: 2px;
+            background: linear-gradient(90deg, #d4a574, #c4925a);
+        }
+
+        .food-card {
+            transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .food-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.12);
+        }
+        .food-card:hover .food-img {
+            transform: scale(1.08);
+        }
+        .food-img {
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .nav-scrolled {
+            background: rgba(254, 253, 251, 0.95);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 1px 20px rgba(0,0,0,0.06);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #d4a574, #c4925a);
+            transition: all 0.3s ease;
+        }
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px -8px rgba(196, 146, 90, 0.5);
+        }
+
+        .quality-icon {
+            transition: all 0.3s ease;
+        }
+        .quality-item:hover .quality-icon {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, #d4a574, #c4925a);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-cream-50 text-charcoal-800 antialiased">
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent">
+        <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-full border-2 border-gold-500 flex items-center justify-center">
+                    <span class="font-display text-gold-600 font-bold text-lg">R</span>
+                </div>
+                <span class="font-display text-xl font-semibold tracking-wide text-charcoal-800">Restaurant</span>
+            </a>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-charcoal-700">
+                <a href="#about" class="hover:text-gold-600 transition">About</a>
+                <a href="#menu" class="hover:text-gold-600 transition">Our Food</a>
+                <a href="#quality" class="hover:text-gold-600 transition">Quality</a>
+                <a href="#mission" class="hover:text-gold-600 transition">Mission</a>
+            </div>
+            <div class="flex items-center gap-3">
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="px-6 py-2.5 rounded-full btn-gold text-white text-sm font-semibold">
+                    Dashboard
+                </a>
+                {% else %}
+                <a href="{% url 'login' %}" class="px-6 py-2.5 rounded-full btn-gold text-white text-sm font-semibold shadow-md">
+                    Staff Login
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========== HERO ========== -->
+    <section class="relative min-h-screen flex items-center overflow-hidden">
+        <!-- Soft background pattern -->
+        <div class="absolute inset-0 bg-gradient-to-br from-cream-100 via-cream-50 to-cream-200"></div>
+        <div class="absolute inset-0 opacity-[0.03]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;60&quot; height=&quot;60&quot; viewBox=&quot;0 0 60 60&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cg fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;%3E%3Cg fill=&quot;%23000000&quot; fill-opacity=&quot;1&quot;%3E%3Cpath d=&quot;M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z&quot;/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+
+        <!-- Decorative circles -->
+        <div class="absolute top-20 right-10 w-72 h-72 rounded-full bg-gold-400/10 blur-3xl animate-float pointer-events-none"></div>
+        <div class="absolute bottom-20 left-10 w-96 h-96 rounded-full bg-amber-200/20 blur-3xl pointer-events-none" style="animation: float 7s ease-in-out 1s infinite;"></div>
+
+        <div class="relative max-w-6xl mx-auto px-6 pt-28 pb-20 w-full">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <p class="animate-fade-up text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-4">
+                        Culinary Excellence Since 2020
+                    </p>
+                    <h1 class="animate-fade-up delay-1 font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] text-charcoal-900 mb-6">
+                        Where flavor<br>
+                        meets <span class="text-gold-500 italic">artistry</span>
+                    </h1>
+                    <div class="animate-fade-up delay-2 gold-line mb-6"></div>
+                    <p class="animate-fade-up delay-2 text-lg text-charcoal-700/70 leading-relaxed max-w-md mb-10">
+                        Experience world-class cuisine crafted with passion, the finest ingredients, and a commitment to unforgettable dining moments.
+                    </p>
+                    <div class="animate-fade-up delay-3 flex flex-wrap gap-4">
+                        <a href="#menu" class="px-8 py-3.5 rounded-full btn-gold text-white font-semibold text-sm">
+                            Explore Our Menu
+                        </a>
+                        <a href="#about" class="px-8 py-3.5 rounded-full border-2 border-charcoal-800/15 text-charcoal-800 font-semibold text-sm hover:border-gold-500 hover:text-gold-600 transition">
+                            Our Story
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Hero visual cards -->
+                <div class="relative hidden lg:block animate-scale-in delay-2">
+                    <div class="relative mx-auto w-[380px] h-[420px]">
+                        <div class="absolute top-0 right-0 w-64 h-72 rounded-3xl overflow-hidden shadow-2xl shadow-charcoal-900/15 animate-float">
+                            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=700&fit=crop&q=80"
+                                 alt="Fine plated steak dinner"
+                                 class="w-full h-full object-cover"
+                                 loading="eager">
+                        </div>
+                        <div class="absolute bottom-8 left-0 w-56 h-56 rounded-3xl overflow-hidden shadow-xl border-4 border-white" style="animation: float 5s ease-in-out 1.5s infinite;">
+                            <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500&h=500&fit=crop&q=80"
+                                 alt="Fresh gourmet salad"
+                                 class="w-full h-full object-cover"
+                                 loading="eager">
+                        </div>
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-cream-200 z-10">
+                            <div class="text-center">
+                                <p class="font-display text-2xl font-bold text-gold-600">4.9</p>
+                                <p class="text-[10px] text-charcoal-700/50 tracking-wide">RATED</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll indicator -->
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-charcoal-700/40 text-xs tracking-widest uppercase animate-bounce">
+            <span>Scroll</span>
+            <i class="bi bi-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- ========== ABOUT ========== -->
+    <section id="about" class="py-24 bg-white">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="reveal">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="rounded-2xl h-64 overflow-hidden shadow-md">
+                            <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&h=600&fit=crop&q=80"
+                                 alt="Professional chef in kitchen"
+                                 class="w-full h-full object-cover"
+                                 loading="lazy">
+                        </div>
+                        <div class="rounded-2xl h-64 overflow-hidden shadow-md mt-8">
+                            <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=500&h=600&fit=crop&q=80"
+                                 alt="Elegant restaurant table setting"
+                                 class="w-full h-full object-cover"
+                                 loading="lazy">
+                        </div>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <p class="text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-3">About Us</p>
+                    <h2 class="font-display text-4xl md:text-5xl font-bold text-charcoal-900 mb-4 leading-tight">
+                        A tradition of<br>culinary passion
+                    </h2>
+                    <div class="gold-line mb-6"></div>
+                    <p class="text-charcoal-700/70 leading-relaxed mb-4">
+                        Born from a love of exceptional food and warm hospitality, our restaurant brings together the finest ingredients, skilled chefs, and an atmosphere designed for connection.
+                    </p>
+                    <p class="text-charcoal-700/70 leading-relaxed mb-8">
+                        Every dish tells a story — of carefully sourced produce, time-honored techniques, and a modern twist that keeps our guests coming back.
+                    </p>
+                    <div class="flex gap-10">
+                        <div>
+                            <p class="font-display text-3xl font-bold text-gold-600">15+</p>
+                            <p class="text-sm text-charcoal-700/50 mt-1">Years Experience</p>
+                        </div>
+                        <div>
+                            <p class="font-display text-3xl font-bold text-gold-600">50+</p>
+                            <p class="text-sm text-charcoal-700/50 mt-1">Signature Dishes</p>
+                        </div>
+                        <div>
+                            <p class="font-display text-3xl font-bold text-gold-600">10k+</p>
+                            <p class="text-sm text-charcoal-700/50 mt-1">Happy Guests</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== OUR FOOD ========== -->
+    <section id="menu" class="py-24 bg-cream-100">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-14 reveal">
+                <p class="text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-3">Our Menu</p>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-charcoal-900 mb-4">Signature dishes</h2>
+                <div class="gold-line mx-auto mb-4"></div>
+                <p class="text-charcoal-700/60 max-w-lg mx-auto">Crafted with seasonal ingredients and plated with care for an unforgettable experience.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Food cards -->
+                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600&h=400&fit=crop&q=80"
+                             alt="Grilled ribeye steak"
+                             class="food-img w-full h-full object-cover"
+                             loading="lazy">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-display text-xl font-semibold">Grilled Ribeye</h3>
+                            <span class="text-gold-600 font-semibold">$32</span>
+                        </div>
+                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Premium aged beef, herb butter, roasted seasonal vegetables.</p>
+                    </div>
+                </div>
+
+                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm" style="transition-delay: 0.1s">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&h=400&fit=crop&q=80"
+                             alt="Lobster risotto"
+                             class="food-img w-full h-full object-cover"
+                             loading="lazy">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-display text-xl font-semibold">Lobster Risotto</h3>
+                            <span class="text-gold-600 font-semibold">$38</span>
+                        </div>
+                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Creamy arborio rice, fresh lobster, white wine & saffron.</p>
+                    </div>
+                </div>
+
+                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm" style="transition-delay: 0.2s">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1546793665-c74683f339c1?w=600&h=400&fit=crop&q=80"
+                             alt="Fresh garden salad"
+                             class="food-img w-full h-full object-cover"
+                             loading="lazy">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-display text-xl font-semibold">Garden Harvest</h3>
+                            <span class="text-gold-600 font-semibold">$18</span>
+                        </div>
+                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Organic greens, heirloom tomatoes, house vinaigrette.</p>
+                    </div>
+                </div>
+
+                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=600&h=400&fit=crop&q=80"
+                             alt="Truffle pasta"
+                             class="food-img w-full h-full object-cover"
+                             loading="lazy">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-display text-xl font-semibold">Truffle Pasta</h3>
+                            <span class="text-gold-600 font-semibold">$28</span>
+                        </div>
+                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Handmade tagliatelle, black truffle, aged parmesan.</p>
+                    </div>
+                </div>
+
+                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm" style="transition-delay: 0.1s">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&h=400&fit=crop&q=80"
+                             alt="Chocolate dessert"
+                             class="food-img w-full h-full object-cover"
+                             loading="lazy">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-display text-xl font-semibold">Chocolate Soufflé</h3>
+                            <span class="text-gold-600 font-semibold">$14</span>
+                        </div>
+                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Dark chocolate, vanilla bean ice cream, gold leaf.</p>
+                    </div>
+                </div>
+
+                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm" style="transition-delay: 0.2s">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&h=400&fit=crop&q=80"
+                             alt="Signature cocktails"
+                             class="food-img w-full h-full object-cover"
+                             loading="lazy">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-display text-xl font-semibold">House Cocktails</h3>
+                            <span class="text-gold-600 font-semibold">$16</span>
+                        </div>
+                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Signature mixes with premium spirits and fresh botanicals.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== QUALITY ========== -->
+    <section id="quality" class="py-24 bg-white">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-14 reveal">
+                <p class="text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-3">Our Promise</p>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-charcoal-900 mb-4">Quality without compromise</h2>
+                <div class="gold-line mx-auto"></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="quality-item reveal text-center p-6">
+                    <div class="quality-icon w-16 h-16 rounded-2xl bg-cream-200 text-gold-600 flex items-center justify-center text-2xl mx-auto mb-5">
+                        <i class="bi bi-leaf"></i>
+                    </div>
+                    <h3 class="font-display text-lg font-semibold mb-2">Fresh Ingredients</h3>
+                    <p class="text-sm text-charcoal-700/60 leading-relaxed">Locally sourced produce delivered daily for peak freshness and flavor.</p>
+                </div>
+                <div class="quality-item reveal text-center p-6" style="transition-delay: 0.1s">
+                    <div class="quality-icon w-16 h-16 rounded-2xl bg-cream-200 text-gold-600 flex items-center justify-center text-2xl mx-auto mb-5">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <h3 class="font-display text-lg font-semibold mb-2">Expert Chefs</h3>
+                    <p class="text-sm text-charcoal-700/60 leading-relaxed">Award-winning culinary team trained in classical and modern techniques.</p>
+                </div>
+                <div class="quality-item reveal text-center p-6" style="transition-delay: 0.2s">
+                    <div class="quality-icon w-16 h-16 rounded-2xl bg-cream-200 text-gold-600 flex items-center justify-center text-2xl mx-auto mb-5">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h3 class="font-display text-lg font-semibold mb-2">Food Safety</h3>
+                    <p class="text-sm text-charcoal-700/60 leading-relaxed">International hygiene standards and rigorous kitchen protocols.</p>
+                </div>
+                <div class="quality-item reveal text-center p-6" style="transition-delay: 0.3s">
+                    <div class="quality-icon w-16 h-16 rounded-2xl bg-cream-200 text-gold-600 flex items-center justify-center text-2xl mx-auto mb-5">
+                        <i class="bi bi-heart"></i>
+                    </div>
+                    <h3 class="font-display text-lg font-semibold mb-2">Guest First</h3>
+                    <p class="text-sm text-charcoal-700/60 leading-relaxed">Personalized service and attention to every detail of your visit.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== MISSION & VISION ========== -->
+    <section id="mission" class="py-24 bg-cream-100">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-14 reveal">
+                <p class="text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-3">Our Purpose</p>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-charcoal-900 mb-4">Mission & Vision</h2>
+                <div class="gold-line mx-auto"></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="reveal bg-white rounded-3xl p-10 shadow-sm border border-cream-200">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 text-white flex items-center justify-center text-2xl mb-6">
+                        <i class="bi bi-flag"></i>
+                    </div>
+                    <h3 class="font-display text-2xl font-bold text-charcoal-900 mb-4">Our Mission</h3>
+                    <p class="text-charcoal-700/70 leading-relaxed">
+                        To create memorable dining experiences by serving exceptional food with genuine hospitality — celebrating local flavors while embracing global culinary traditions, one plate at a time.
+                    </p>
+                </div>
+                <div class="reveal bg-white rounded-3xl p-10 shadow-sm border border-cream-200" style="transition-delay: 0.15s">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-charcoal-700 to-charcoal-900 text-white flex items-center justify-center text-2xl mb-6">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <h3 class="font-display text-2xl font-bold text-charcoal-900 mb-4">Our Vision</h3>
+                    <p class="text-charcoal-700/70 leading-relaxed">
+                        To be recognized as a leading destination for refined dining — where innovation meets tradition, sustainability guides our kitchen, and every guest feels valued and inspired.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Values strip -->
+            <div class="reveal mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                <div class="p-4">
+                    <p class="font-display text-lg font-semibold text-charcoal-900">Integrity</p>
+                    <p class="text-xs text-charcoal-700/50 mt-1">Honest ingredients & pricing</p>
+                </div>
+                <div class="p-4">
+                    <p class="font-display text-lg font-semibold text-charcoal-900">Excellence</p>
+                    <p class="text-xs text-charcoal-700/50 mt-1">Never settle for ordinary</p>
+                </div>
+                <div class="p-4">
+                    <p class="font-display text-lg font-semibold text-charcoal-900">Sustainability</p>
+                    <p class="text-xs text-charcoal-700/50 mt-1">Respect for nature & community</p>
+                </div>
+                <div class="p-4">
+                    <p class="font-display text-lg font-semibold text-charcoal-900">Warmth</p>
+                    <p class="text-xs text-charcoal-700/50 mt-1">Hospitality from the heart</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== CTA ========== -->
+    <section class="py-20 bg-charcoal-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;40&quot; height=&quot;40&quot; viewBox=&quot;0 0 40 40&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cg fill=&quot;%23ffffff&quot; fill-opacity=&quot;1&quot;%3E%3Cpath d=&quot;M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z&quot;/%3E%3C/g%3E%3C/svg%3E');"></div>
+        <div class="relative max-w-3xl mx-auto px-6 text-center reveal">
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-4">Ready to experience excellence?</h2>
+            <p class="text-white/60 mb-8 leading-relaxed">Staff members can access the full restaurant management system with a secure login.</p>
+            <a href="{% url 'login' %}" class="inline-flex items-center gap-2 px-10 py-4 rounded-full btn-gold text-white font-semibold shadow-xl">
+                <i class="bi bi-box-arrow-in-right"></i>
+                Staff Login
+            </a>
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="bg-cream-100 border-t border-cream-300 py-12">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-full border-2 border-gold-500 flex items-center justify-center">
+                        <span class="font-display text-gold-600 font-bold">R</span>
+                    </div>
+                    <span class="font-display text-lg font-semibold">RestaurantAI</span>
+                </div>
+                <div class="flex gap-6 text-sm text-charcoal-700/60">
+                    <a href="#about" class="hover:text-gold-600 transition">About</a>
+                    <a href="#menu" class="hover:text-gold-600 transition">Menu</a>
+                    <a href="#quality" class="hover:text-gold-600 transition">Quality</a>
+                    <a href="#mission" class="hover:text-gold-600 transition">Mission</a>
+                    <a href="{% url 'login' %}" class="hover:text-gold-600 transition">Login</a>
+                </div>
+                <p class="text-sm text-charcoal-700/40">© 2026 RestaurantAI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        const nav = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 40) nav.classList.add('nav-scrolled');
+            else nav.classList.remove('nav-scrolled');
+        });
+
+        // Scroll reveal
+        const reveals = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        reveals.forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - RestaurantAI{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Real-time overview of your restaurant{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+        <div class="stat-card rounded-2xl p-5 border border-slate-200 dark:border-slate-700 card-hover">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-slate-500">Today's Revenue</span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                    <i class="bi bi-currency-dollar text-emerald-600 dark:text-emerald-400 text-lg"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-slate-800 dark:text-white">${{ today_revenue|floatformat:2 }}</p>
+            <p class="text-xs text-slate-500 mt-1">{{ today_count }} orders completed</p>
+        </div>
+        
+        <div class="stat-card rounded-2xl p-5 border border-slate-200 dark:border-slate-700 card-hover">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-slate-500">This Week</span>
+                <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center">
+                    <i class="bi bi-graph-up-arrow text-sky-600 dark:text-sky-400 text-lg"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-slate-800 dark:text-white">${{ week_revenue|floatformat:2 }}</p>
+            <p class="text-xs text-slate-500 mt-1">Last 7 days</p>
+        </div>
+        
+        <div class="stat-card rounded-2xl p-5 border border-slate-200 dark:border-slate-700 card-hover">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-slate-500">Tables</span>
+                <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
+                    <i class="bi bi-layout-wtf text-violet-600 dark:text-violet-400 text-lg"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-slate-800 dark:text-white">{{ occupied_tables }}/{{ total_tables }}</p>
+            <p class="text-xs text-slate-500 mt-1">Currently occupied</p>
+        </div>
+        
+        <div class="stat-card rounded-2xl p-5 border border-slate-200 dark:border-slate-700 card-hover">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-slate-500">Low Stock Alerts</span>
+                <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                    <i class="bi bi-exclamation-triangle text-amber-600 dark:text-amber-400 text-lg"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-slate-800 dark:text-white">{{ low_stock|length }}</p>
+            <p class="text-xs text-slate-500 mt-1">Items need restocking</p>
+        </div>
+    </div>
+    
+    <!-- Prep / Service analytics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="stat-card rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-slate-500">Avg Prep Time</span>
+                <i class="bi bi-stopwatch text-amber-500"></i>
+            </div>
+            <p class="text-2xl font-bold">{% if avg_prep_minutes %}{{ avg_prep_minutes }} min{% else %}—{% endif %}</p>
+            <p class="text-xs text-slate-400 mt-1">Based on {{ prep_sample_count }} items (7 days)</p>
+        </div>
+        <div class="stat-card rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-slate-500">Avg Service Time</span>
+                <i class="bi bi-hourglass-split text-sky-500"></i>
+            </div>
+            <p class="text-2xl font-bold">{% if avg_service_minutes %}{{ avg_service_minutes }} min{% else %}—{% endif %}</p>
+            <p class="text-xs text-slate-400 mt-1">Order created → completed ({{ service_sample_count }} orders)</p>
+        </div>
+        <div class="stat-card rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-slate-500">Peak Hour Today</span>
+                <i class="bi bi-graph-up text-violet-500"></i>
+            </div>
+            <p class="text-2xl font-bold">{{ peak_hour|default:"—" }}</p>
+            <p class="text-xs text-slate-400 mt-1">Highest order volume hour</p>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <!-- Sales Chart -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+            <h3 class="font-semibold mb-4">Sales (Last 7 Days)</h3>
+            <div class="relative" style="height: 260px;">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Top Items Chart -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+            <h3 class="font-semibold mb-4">Top Selling Items</h3>
+            <div class="relative" style="height: 260px;">
+                <canvas id="topItemsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Two columns: Recent Orders + Side panels -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <!-- Recent Orders -->
+        <div class="xl:col-span-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <h3 class="font-semibold">Recent Orders</h3>
+                <a href="{% url 'order_list' %}" class="text-sm text-sky-600 hover:underline">View all</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500">
+                        <tr>
+                            <th class="text-left px-5 py-3 font-medium">Order</th>
+                            <th class="text-left px-5 py-3 font-medium">Table</th>
+                            <th class="text-left px-5 py-3 font-medium">Status</th>
+                            <th class="text-right px-5 py-3 font-medium">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                        {% for order in recent_orders %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition cursor-pointer" onclick="openOrderModal({{ order.id }})">
+                            <td class="px-5 py-3 font-medium text-sky-600">{{ order.order_number }}</td>
+                            <td class="px-5 py-3">{{ order.table.number|default:"—" }}</td>
+                            <td class="px-5 py-3">
+                                <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if order.status == 'completed' or order.status == 'served' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300
+                                    {% elif order.status == 'preparing' %}bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300
+                                    {% elif order.status == 'ready' %}bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300
+                                    {% else %}bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-3 text-right font-medium">${{ order.total }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-5 py-8 text-center text-slate-400">No orders yet. Start taking orders from POS!</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Side panels -->
+        <div class="space-y-6">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+                <h3 class="font-semibold mb-4">Top Selling (7 days)</h3>
+                <div class="space-y-3">
+                    {% for item in top_items %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">{{ item.menu_item__name }}</span>
+                        <span class="text-sm font-semibold text-sky-600">{{ item.qty }} sold</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-sm text-slate-400">No sales data yet</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+                <h3 class="font-semibold mb-4 flex items-center gap-2">
+                    <i class="bi bi-exclamation-circle text-amber-500"></i>
+                    Low Stock
+                </h3>
+                <div class="space-y-2">
+                    {% for item in low_stock %}
+                    <div class="flex items-center justify-between text-sm p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+                        <span>{{ item.name }}</span>
+                        <span class="font-medium text-amber-600">{{ item.current_stock }} {{ item.unit }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-sm text-slate-400">All stock levels are good ✓</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include "components/order_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const isDark = document.documentElement.classList.contains('dark');
+const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+const textColor = isDark ? '#94a3b8' : '#64748b';
+
+// Sales Line Chart
+const salesCtx = document.getElementById('salesChart').getContext('2d');
+new Chart(salesCtx, {
+    type: 'line',
+    data: {
+        labels: {{ sales_labels|safe }},
+        datasets: [{
+            label: 'Revenue ($)',
+            data: {{ sales_data|safe }},
+            borderColor: '#0ea5e9',
+            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#0ea5e9',
+            pointRadius: 4,
+            pointHoverRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            x: {
+                grid: { color: gridColor },
+                ticks: { color: textColor }
+            },
+            y: {
+                beginAtZero: true,
+                grid: { color: gridColor },
+                ticks: { color: textColor }
+            }
+        }
+    }
+});
+
+// Top Items Bar Chart
+const topCtx = document.getElementById('topItemsChart').getContext('2d');
+const topLabels = {{ top_labels|safe }};
+const topData = {{ top_data|safe }};
+
+new Chart(topCtx, {
+    type: 'bar',
+    data: {
+        labels: topLabels.length ? topLabels : ['No data'],
+        datasets: [{
+            label: 'Quantity Sold',
+            data: topData.length ? topData : [0],
+            backgroundColor: [
+                'rgba(14, 165, 233, 0.8)',
+                'rgba(139, 92, 246, 0.8)',
+                'rgba(16, 185, 129, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(239, 68, 68, 0.8)',
+            ],
+            borderRadius: 8,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                grid: { color: gridColor },
+                ticks: { color: textColor, stepSize: 1 }
+            },
+            y: {
+                grid: { display: false },
+                ticks: { color: textColor }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

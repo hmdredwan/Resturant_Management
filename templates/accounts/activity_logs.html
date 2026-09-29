@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Activity Logs - RestaurantAI{% endblock %}
+{% block page_title %}Activity Logs{% endblock %}
+{% block page_subtitle %}Audit trail of system actions{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500">
+                <tr>
+                    <th class="text-left px-5 py-3 font-medium">Time</th>
+                    <th class="text-left px-5 py-3 font-medium">User</th>
+                    <th class="text-left px-5 py-3 font-medium">Action</th>
+                    <th class="text-left px-5 py-3 font-medium">Description</th>
+                    <th class="text-left px-5 py-3 font-medium">IP</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for log in logs %}
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                    <td class="px-5 py-3 text-slate-500 whitespace-nowrap">{{ log.created_at|date:"Y-m-d H:i" }}</td>
+                    <td class="px-5 py-3 font-medium">{{ log.user.get_full_name|default:log.user.username|default:"System" }}</td>
+                    <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700">{{ log.get_action_display }}</span></td>
+                    <td class="px-5 py-3">{{ log.description }}</td>
+                    <td class="px-5 py-3 text-slate-400 text-xs">{{ log.ip_address|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="px-5 py-12 text-center text-slate-400">No activity logs yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

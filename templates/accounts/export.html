@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Export & Backup - RestaurantAI{% endblock %}
+{% block page_title %}Export & Backup{% endblock %}
+{% block page_subtitle %}Download data as CSV or full JSON backup{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5 animate-fade-in max-w-3xl">
+    <a href="{% url 'export_orders' %}" class="block bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 card-hover">
+        <div class="w-12 h-12 rounded-xl bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center mb-4">
+            <i class="bi bi-receipt text-sky-600 text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-lg mb-1">Orders CSV</h3>
+        <p class="text-sm text-slate-500">Export all orders with totals, status, and timestamps</p>
+    </a>
+    <a href="{% url 'export_inventory' %}" class="block bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 card-hover">
+        <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mb-4">
+            <i class="bi bi-box-seam text-amber-600 text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-lg mb-1">Inventory CSV</h3>
+        <p class="text-sm text-slate-500">Stock levels, minimums, costs, and low-stock flags</p>
+    </a>
+    <a href="{% url 'export_menu' %}" class="block bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 card-hover">
+        <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mb-4">
+            <i class="bi bi-journal-richtext text-emerald-600 text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-lg mb-1">Menu CSV</h3>
+        <p class="text-sm text-slate-500">Categories, items, prices, and availability</p>
+    </a>
+    <a href="{% url 'export_backup' %}" class="block bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 card-hover">
+        <div class="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center mb-4">
+            <i class="bi bi-cloud-download text-violet-600 text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-lg mb-1">Full JSON Backup</h3>
+        <p class="text-sm text-slate-500">Complete dump: menu, inventory, tables, orders</p>
+    </a>
+</div>
+<p class="mt-6 text-sm text-slate-400 max-w-3xl">Exports are logged in Activity Logs. Owner and Manager roles only.</p>
+{% endblock %}

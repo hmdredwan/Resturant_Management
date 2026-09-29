@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}Kitchen Display - RestaurantAI{% endblock %}
+{% block page_title %}Kitchen Display{% endblock %}
+{% block page_subtitle %}Live order queue — updates automatically{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes ticketIn {
+        from { opacity: 0; transform: scale(0.92) translateY(12px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes pulseUrgent {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    }
+    .ticket-enter { animation: ticketIn 0.35s ease forwards; }
+    .ticket-urgent { animation: pulseUrgent 2s ease infinite; border-color: #f87171 !important; }
+    .live-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #22c55e;
+        animation: pulseUrgent 1.5s ease infinite;
+    }
+    .kitchen-fullscreen main { margin-left: 0 !important; }
+    .kitchen-fullscreen aside { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center gap-3">
+        <div class="flex gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                Pending <span id="count-pending" class="font-bold">0</span>
+            </span>
+            <span class="px-3 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">
+                Preparing <span id="count-preparing" class="font-bold">0</span>
+            </span>
+            <span class="px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                Ready <span id="count-ready" class="font-bold">0</span>
+            </span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+            <span class="live-dot"></span>
+            <span>Live</span>
+            <span class="text-slate-400">·</span>
+            <span id="last-updated">Connecting...</span>
+        </div>
+    </div>
+    <div class="flex gap-2">
+        <label class="flex items-center gap-2 text-sm text-slate-500 cursor-pointer">
+            <input type="checkbox" id="sound-toggle" class="rounded" checked>
+            Sound
+        </label>
+        <button onclick="toggleFullscreen()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition" title="Fullscreen kitchen mode">
+            <i class="bi bi-fullscreen"></i>
+        </button>
+        <button onclick="fetchKitchen(true)" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<div id="kitchen-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+    <!-- Filled by JS -->
+</div>
+
+<div id="kitchen-empty" class="hidden text-center py-20">
+    <div class="text-6xl mb-4">👨‍🍳</div>
+    <h3 class="text-xl font-semibold text-slate-600 dark:text-slate-300">Kitchen is clear!</h3>
+    <p class="text-slate-400 mt-1">Waiting for new orders...</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const POLL_MS = 3000;
+const CSRF = '{{ csrf_token }}';
+let knownIds = new Set();
+let pollTimer = null;
+let isUpdating = false;
+
+const headerGrad = {
+    pending: 'from-amber-500 to-orange-500',
+    preparing: 'from-sky-500 to-blue-500',
+    ready: 'from-emerald-500 to-green-500',
+};
+
+function playNewOrderSound() {
+    if (!document.getElementById('sound-toggle')?.checked) return;
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.value = 0.15;
+        osc.start();
+        setTimeout(() => { osc.frequency.value = 1100; }, 100);
+        setTimeout(() => { osc.stop(); ctx.close(); }, 250);
+    } catch (e) {}
+}
+
+function formatAge(seconds) {
+    if (seconds < 60) return seconds + 's';
+    const m = Math.floor(seconds / 60);
+    if (m < 60) return m + 'm';
+    return Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
+}
+
+function ticketHTML(item) {
+    const grad = headerGrad[item.status] || headerGrad.pending;
+    let actionBtn = '';
+    if (item.status === 'pending') {
+        actionBtn = `<button onclick="updateStatus(${item.id}, 'preparing')" class="flex-1 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium transition shadow-sm">▶ Start Preparing</button>`;
+    } else if (item.status === 'preparing') {
+        actionBtn = `<button onclick="updateStatus(${item.id}, 'ready')" class="flex-1 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition shadow-sm">✓ Mark Ready</button>`;
+    } else if (item.status === 'ready') {
+        actionBtn = `<button onclick="updateStatus(${item.id}, 'served')" class="flex-1 py-2.5 rounded-lg bg-slate-600 hover:bg-slate-700 text-white text-sm font-medium transition shadow-sm">✓ Served</button>`;
+    }
+
+    const urgentClass = item.is_urgent ? 'ticket-urgent' : '';
+    const ageClass = item.is_urgent ? 'text-red-500 font-semibold' : 'text-slate-400';
+
+    return `
+    <div id="ticket-${item.id}" data-id="${item.id}" data-status="${item.status}"
+         class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden card-hover transition-all duration-300 ${urgentClass}">
+        <div class="px-4 py-3 text-white flex justify-between items-center bg-gradient-to-r ${grad}">
+            <span class="font-bold">${item.order_number}</span>
+            <span class="text-sm opacity-90">Table ${item.table || '—'}</span>
+        </div>
+        <div class="p-4">
+            <h3 class="text-lg font-semibold">${item.quantity}× ${item.item_name}</h3>
+            ${item.notes ? `<p class="text-sm text-amber-600 dark:text-amber-400 mt-1"><i class="bi bi-chat-left-text"></i> ${item.notes}</p>` : ''}
+            <p class="text-xs mt-2 ${ageClass}"><i class="bi bi-clock"></i> ${item.age_display} ago${item.is_urgent ? ' · URGENT' : ''}</p>
+            <div class="mt-4 flex gap-2" id="actions-${item.id}">
+                ${actionBtn}
+            </div>
+        </div>
+    </div>`;
+}
+
+function renderKitchen(items) {
+    const grid = document.getElementById('kitchen-grid');
+    const empty = document.getElementById('kitchen-empty');
+
+    // Counts
+    let pending = 0, preparing = 0, ready = 0;
+    items.forEach(i => {
+        if (i.status === 'pending') pending++;
+        else if (i.status === 'preparing') preparing++;
+        else if (i.status === 'ready') ready++;
+    });
+    document.getElementById('count-pending').textContent = pending;
+    document.getElementById('count-preparing').textContent = preparing;
+    document.getElementById('count-ready').textContent = ready;
+
+    if (items.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        knownIds = new Set();
+        return;
+    }
+    empty.classList.add('hidden');
+
+    const newIds = new Set(items.map(i => i.id));
+    const arrived = items.filter(i => !knownIds.has(i.id));
+
+    // Detect new tickets
+    if (knownIds.size > 0 && arrived.length > 0) {
+        playNewOrderSound();
+    }
+
+    // Rebuild grid (simple + reliable for status changes)
+    const existingMap = {};
+    grid.querySelectorAll('[data-id]').forEach(el => {
+        existingMap[el.dataset.id] = el;
+    });
+
+    const html = items.map(item => {
+        const isNew = !knownIds.has(item.id);
+        let h = ticketHTML(item);
+        if (isNew && knownIds.size > 0) {
+            h = h.replace('class="bg-white', 'class="ticket-enter bg-white');
+        }
+        return h;
+    }).join('');
+
+    grid.innerHTML = html;
+    knownIds = newIds;
+}
+
+async function fetchKitchen(manual = false) {
+    if (isUpdating && !manual) return;
+    try {
+        const res = await fetch('{% url "api_kitchen_feed" %}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        });
+        if (!res.ok) throw new Error('Feed error');
+        const data = await res.json();
+        renderKitchen(data.items || []);
+        const t = new Date();
+        document.getElementById('last-updated').textContent =
+            'Updated ' + t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    } catch (err) {
+        document.getElementById('last-updated').textContent = 'Connection issue — retrying...';
+    }
+}
+
+async function updateStatus(itemId, newStatus) {
+    const actions = document.getElementById(`actions-${itemId}`);
+    if (actions) {
+        actions.querySelectorAll('button').forEach(b => {
+            b.disabled = true;
+            b.textContent = 'Updating...';
+        });
+    }
+    isUpdating = true;
+    try {
+        const res = await fetch(`/api/orders/item/${itemId}/status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF,
+            },
+            body: JSON.stringify({ status: newStatus }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Immediate refresh
+            await fetchKitchen(true);
+        } else {
+            alert(data.error || 'Failed to update');
+            await fetchKitchen(true);
+        }
+    } catch (err) {
+        alert('Network error');
+        await fetchKitchen(true);
+    }
+    isUpdating = false;
+}
+
+function toggleFullscreen() {
+    document.body.classList.toggle('kitchen-fullscreen');
+    const icon = event.currentTarget.querySelector('i');
+    if (document.body.classList.contains('kitchen-fullscreen')) {
+        icon.className = 'bi bi-fullscreen-exit';
+    } else {
+        icon.className = 'bi bi-fullscreen';
+    }
+}
+
+// Start polling
+fetchKitchen(true);
+pollTimer = setInterval(() => fetchKitchen(false), POLL_MS);
+
+// Pause polling when tab hidden to save resources
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+    } else {
+        fetchKitchen(true);
+        if (!pollTimer) pollTimer = setInterval(() => fetchKitchen(false), POLL_MS);
+    }
+});
+</script>
+{% endblock %}

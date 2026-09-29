@@ -1,0 +1,248 @@
+<!-- Shared Order Detail Modal -->
+<div id="order-modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeOrderModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden pointer-events-auto border border-slate-200 dark:border-slate-700 transform transition-all duration-200 scale-95 opacity-0" id="modal-panel">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-gradient-to-r from-sky-500 to-blue-600 text-white">
+                <div>
+                    <h3 class="font-bold text-lg" id="modal-order-number">—</h3>
+                    <p class="text-sm text-sky-100" id="modal-order-meta">—</p>
+                </div>
+                <button onclick="closeOrderModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto max-h-[60vh] p-6 space-y-5">
+                <div class="flex flex-wrap gap-2">
+                    <span id="modal-status" class="inline-flex px-3 py-1 rounded-full text-xs font-semibold"></span>
+                    <span id="modal-type" class="inline-flex px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"></span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                        <p class="text-slate-500 text-xs mb-0.5">Table</p>
+                        <p class="font-medium" id="modal-table">—</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                        <p class="text-slate-500 text-xs mb-0.5">Created by</p>
+                        <p class="font-medium" id="modal-created-by">—</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                        <p class="text-slate-500 text-xs mb-0.5">Created at</p>
+                        <p class="font-medium" id="modal-created-at">—</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                        <p class="text-slate-500 text-xs mb-0.5">Completed at</p>
+                        <p class="font-medium" id="modal-completed-at">—</p>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3 text-sm text-slate-500 uppercase tracking-wide">Items</h4>
+                    <div id="modal-items" class="space-y-2"></div>
+                </div>
+                <div id="modal-notes-wrap" class="hidden">
+                    <h4 class="font-semibold mb-2 text-sm text-slate-500 uppercase tracking-wide">Notes</h4>
+                    <p id="modal-notes" class="text-sm p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200"></p>
+                </div>
+                <!-- Edit form (hidden by default) -->
+                <div id="modal-edit-form" class="hidden space-y-3 border-t border-slate-200 dark:border-slate-700 pt-4">
+                    <h4 class="font-semibold text-sm text-slate-500 uppercase tracking-wide">Edit Order</h4>
+                    <div>
+                        <label class="block text-xs text-slate-500 mb-1">Notes</label>
+                        <textarea id="edit-notes" rows="2" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm"></textarea>
+                    </div>
+                    <div id="edit-discount-wrap" class="hidden">
+                        <label class="block text-xs text-slate-500 mb-1">Discount ($)</label>
+                        <input type="number" step="0.01" min="0" id="edit-discount" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm">
+                    </div>
+                    <div id="edit-items-list" class="space-y-2 text-sm"></div>
+                    <button onclick="saveOrderEdit()" class="w-full py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium">Save Changes</button>
+                </div>
+                <div class="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-2 text-sm">
+                    <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span id="modal-subtotal">$0.00</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Tax</span><span id="modal-tax">$0.00</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Discount</span><span id="modal-discount">$0.00</span></div>
+                    <div class="flex justify-between font-bold text-base pt-2 border-t border-slate-100 dark:border-slate-700">
+                        <span>Total</span><span id="modal-total" class="text-sky-600">$0.00</span>
+                    </div>
+                </div>
+                <div id="modal-action-msg" class="hidden text-sm text-center py-2 rounded-lg"></div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex flex-wrap justify-end gap-2 bg-slate-50 dark:bg-slate-900/30">
+                <button id="btn-edit-order" onclick="toggleEditForm()" class="hidden px-4 py-2 rounded-lg border border-sky-300 text-sky-600 text-sm font-medium hover:bg-sky-50 dark:hover:bg-sky-900/20 transition">
+                    <i class="bi bi-pencil"></i> Edit
+                </button>
+                <button id="btn-cancel-order" onclick="cancelOrder()" class="hidden px-4 py-2 rounded-lg border border-red-300 text-red-600 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                    <i class="bi bi-x-circle"></i> Cancel Order
+                </button>
+                <button onclick="closeOrderModal()" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-600 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const statusColors = {
+    pending: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
+    confirmed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+    preparing: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+    ready: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
+    served: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+    completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+    cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+};
+const itemStatusColors = {
+    pending: 'text-slate-500', preparing: 'text-amber-600', ready: 'text-sky-600',
+    served: 'text-emerald-600', cancelled: 'text-red-500',
+};
+
+let currentOrderId = null;
+let currentOrderData = null;
+
+async function openOrderModal(orderId) {
+    currentOrderId = orderId;
+    const modal = document.getElementById('order-modal');
+    const panel = document.getElementById('modal-panel');
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        panel.classList.remove('scale-95', 'opacity-0');
+        panel.classList.add('scale-100', 'opacity-100');
+    });
+    document.getElementById('modal-order-number').textContent = 'Loading...';
+    document.getElementById('modal-items').innerHTML = '<p class="text-slate-400 text-sm">Loading items...</p>';
+    document.getElementById('modal-edit-form').classList.add('hidden');
+    document.getElementById('modal-action-msg').classList.add('hidden');
+    try {
+        const res = await fetch(`/api/orders/${orderId}/`);
+        if (!res.ok) throw new Error('Failed to load order');
+        const data = await res.json();
+        currentOrderData = data;
+        document.getElementById('modal-order-number').textContent = data.order_number;
+        document.getElementById('modal-order-meta').textContent = data.created_at;
+        const statusEl = document.getElementById('modal-status');
+        statusEl.textContent = data.status_display;
+        statusEl.className = 'inline-flex px-3 py-1 rounded-full text-xs font-semibold ' + (statusColors[data.status] || statusColors.pending);
+        document.getElementById('modal-type').textContent = data.order_type_display;
+        document.getElementById('modal-table').textContent = data.table ? `Table ${data.table}` : '—';
+        document.getElementById('modal-created-by').textContent = data.created_by || '—';
+        document.getElementById('modal-created-at').textContent = data.created_at || '—';
+        document.getElementById('modal-completed-at').textContent = data.completed_at || '—';
+        document.getElementById('modal-items').innerHTML = data.items.map(item => `
+            <div class="flex items-start justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                <div class="flex-1 min-w-0">
+                    <p class="font-medium text-sm">${item.quantity}× ${item.name}</p>
+                    ${item.notes ? `<p class="text-xs text-amber-600 mt-0.5"><i class="bi bi-chat-left-text"></i> ${item.notes}</p>` : ''}
+                    <p class="text-xs mt-1 ${itemStatusColors[item.status] || 'text-slate-400'}">${item.status_display}${item.prep_time_minutes != null ? ` · Prep ${item.prep_time_minutes}m` : ''}</p>
+                </div>
+                <div class="text-right ml-3">
+                    <p class="text-sm font-semibold">$${item.line_total}</p>
+                    <p class="text-xs text-slate-400">$${item.unit_price} each</p>
+                </div>
+            </div>
+        `).join('') || '<p class="text-slate-400 text-sm">No items</p>';
+        const notesWrap = document.getElementById('modal-notes-wrap');
+        if (data.notes) {
+            notesWrap.classList.remove('hidden');
+            document.getElementById('modal-notes').textContent = data.notes;
+        } else {
+            notesWrap.classList.add('hidden');
+        }
+        document.getElementById('modal-subtotal').textContent = '$' + data.subtotal;
+        document.getElementById('modal-tax').textContent = '$' + data.tax;
+        document.getElementById('modal-discount').textContent = '$' + data.discount;
+        document.getElementById('modal-total').textContent = '$' + data.total;
+
+        // Auth buttons
+        document.getElementById('btn-cancel-order').classList.toggle('hidden', !data.can_cancel);
+        document.getElementById('btn-edit-order').classList.toggle('hidden', !data.can_edit);
+        document.getElementById('edit-discount-wrap').classList.toggle('hidden', !data.is_manager);
+    } catch (err) {
+        document.getElementById('modal-order-number').textContent = 'Error';
+        document.getElementById('modal-items').innerHTML = `<p class="text-red-500 text-sm">${err.message}</p>`;
+    }
+}
+
+function closeOrderModal() {
+    const modal = document.getElementById('order-modal');
+    const panel = document.getElementById('modal-panel');
+    panel.classList.add('scale-95', 'opacity-0');
+    panel.classList.remove('scale-100', 'opacity-100');
+    setTimeout(() => modal.classList.add('hidden'), 200);
+}
+
+function toggleEditForm() {
+    const form = document.getElementById('modal-edit-form');
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden') && currentOrderData) {
+        document.getElementById('edit-notes').value = currentOrderData.notes || '';
+        document.getElementById('edit-discount').value = currentOrderData.discount || '0';
+        document.getElementById('edit-items-list').innerHTML = currentOrderData.items
+            .filter(i => i.status !== 'served' && i.status !== 'cancelled')
+            .map(i => `
+                <div class="flex items-center gap-2">
+                    <span class="flex-1 truncate">${i.name}</span>
+                    <input type="number" min="0" value="${i.quantity}" data-item-id="${i.id}"
+                           class="edit-qty w-16 px-2 py-1 rounded border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm text-center">
+                </div>
+            `).join('') || '<p class="text-slate-400 text-xs">No editable items</p>';
+    }
+}
+
+async function saveOrderEdit() {
+    if (!currentOrderId) return;
+    const items = [...document.querySelectorAll('.edit-qty')].map(el => ({
+        id: parseInt(el.dataset.itemId),
+        quantity: parseInt(el.value) || 0,
+    }));
+    const body = {
+        notes: document.getElementById('edit-notes').value,
+        items,
+    };
+    const disc = document.getElementById('edit-discount');
+    if (disc && !document.getElementById('edit-discount-wrap').classList.contains('hidden')) {
+        body.discount = disc.value;
+    }
+    const res = await fetch(`/api/orders/${currentOrderId}/edit/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    const msg = document.getElementById('modal-action-msg');
+    if (data.success) {
+        msg.className = 'text-sm text-center py-2 rounded-lg bg-emerald-100 text-emerald-700';
+        msg.textContent = data.message;
+        msg.classList.remove('hidden');
+        openOrderModal(currentOrderId);
+    } else {
+        msg.className = 'text-sm text-center py-2 rounded-lg bg-red-100 text-red-700';
+        msg.textContent = data.error || 'Failed';
+        msg.classList.remove('hidden');
+    }
+}
+
+async function cancelOrder() {
+    if (!currentOrderId) return;
+    const reason = prompt('Cancel reason (optional):') || '';
+    if (reason === null) return;
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+    const res = await fetch(`/api/orders/${currentOrderId}/cancel/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify({ reason }),
+    });
+    const data = await res.json();
+    const msg = document.getElementById('modal-action-msg');
+    if (data.success) {
+        msg.className = 'text-sm text-center py-2 rounded-lg bg-emerald-100 text-emerald-700';
+        msg.textContent = data.message;
+        msg.classList.remove('hidden');
+        setTimeout(() => { closeOrderModal(); location.reload(); }, 1200);
+    } else {
+        msg.className = 'text-sm text-center py-2 rounded-lg bg-red-100 text-red-700';
+        msg.textContent = data.error || 'Failed';
+        msg.classList.remove('hidden');
+    }
+}
+
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeOrderModal(); });
+</script>

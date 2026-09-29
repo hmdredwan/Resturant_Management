@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Staff - RestaurantAI{% endblock %}
+{% block page_title %}Staff{% endblock %}
+{% block page_subtitle %}Team members and on-duty status{% endblock %}
+
+{% block content %}
+<div class="flex justify-end mb-4">
+    <a href="{% url 'shift_list' %}" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium">Manage Shifts</a>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500">
+                <tr>
+                    <th class="text-left px-5 py-3 font-medium">Name</th>
+                    <th class="text-left px-5 py-3 font-medium">Role</th>
+                    <th class="text-left px-5 py-3 font-medium">Phone</th>
+                    <th class="text-left px-5 py-3 font-medium">On Duty Today</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for s in staff %}
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                    <td class="px-5 py-3 font-medium">{{ s.get_full_name|default:s.username }}</td>
+                    <td class="px-5 py-3 capitalize">{{ s.get_role_display }}</td>
+                    <td class="px-5 py-3 text-slate-500">{{ s.phone|default:"—" }}</td>
+                    <td class="px-5 py-3">
+                        {% if s.id in on_duty_ids %}
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">On Duty</span>
+                        {% else %}
+                        <span class="text-slate-400 text-xs">Off</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="px-5 py-12 text-center text-slate-400">No staff found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Users - RestaurantAI{% endblock %}
+{% block page_title %}User & Role Management{% endblock %}
+{% block page_subtitle %}Manage staff roles and access{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500">
+                <tr>
+                    <th class="text-left px-5 py-3 font-medium">User</th>
+                    <th class="text-left px-5 py-3 font-medium">Email</th>
+                    <th class="text-left px-5 py-3 font-medium">Phone</th>
+                    <th class="text-left px-5 py-3 font-medium">Role</th>
+                    <th class="text-left px-5 py-3 font-medium">Active</th>
+                    <th class="text-left px-5 py-3 font-medium">Change Role</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for u in users %}
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                    <td class="px-5 py-3 font-medium">{{ u.get_full_name|default:u.username }}</td>
+                    <td class="px-5 py-3 text-slate-500">{{ u.email|default:"—" }}</td>
+                    <td class="px-5 py-3 text-slate-500">{{ u.phone|default:"—" }}</td>
+                    <td class="px-5 py-3"><span class="capitalize px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">{{ u.get_role_display }}</span></td>
+                    <td class="px-5 py-3">{% if u.is_active_staff %}<span class="text-emerald-600">Yes</span>{% else %}<span class="text-red-500">No</span>{% endif %}</td>
+                    <td class="px-5 py-3">
+                        <form method="post" action="{% url 'user_update_role' u.id %}" class="flex gap-2">
+                            {% csrf_token %}
+                            <select name="role" class="px-2 py-1 rounded border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-xs">
+                                {% for val, label in role_choices %}
+                                <option value="{{ val }}" {% if u.role == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="px-2 py-1 rounded bg-slate-200 dark:bg-slate-700 text-xs font-medium">Save</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

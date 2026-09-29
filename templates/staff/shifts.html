@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Shifts - RestaurantAI{% endblock %}
+{% block page_title %}Shift Scheduling{% endblock %}
+{% block page_subtitle %}Create and view staff shifts{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <h3 class="font-semibold mb-3">Create Shift</h3>
+        <form method="post" action="{% url 'shift_create' %}" class="flex flex-wrap gap-3 items-end">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Staff</label>
+                <select name="staff_id" required class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm">
+                    {% for s in staff %}
+                    <option value="{{ s.id }}">{{ s.get_full_name|default:s.username }} ({{ s.get_role_display }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Start</label>
+                <input type="datetime-local" name="start_time" required class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">End</label>
+                <input type="datetime-local" name="end_time" required class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Notes</label>
+                <input name="notes" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm w-40">
+            </div>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium">Create</button>
+        </form>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500">
+                <tr>
+                    <th class="text-left px-5 py-3 font-medium">Staff</th>
+                    <th class="text-left px-5 py-3 font-medium">Start</th>
+                    <th class="text-left px-5 py-3 font-medium">End</th>
+                    <th class="text-left px-5 py-3 font-medium">Notes</th>
+                    <th class="text-left px-5 py-3 font-medium">Done</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for shift in shifts %}
+                <tr>
+                    <td class="px-5 py-3 font-medium">{{ shift.staff.get_full_name|default:shift.staff.username }}</td>
+                    <td class="px-5 py-3">{{ shift.start_time|date:"Y-m-d H:i" }}</td>
+                    <td class="px-5 py-3">{{ shift.end_time|date:"Y-m-d H:i" }}</td>
+                    <td class="px-5 py-3 text-slate-500">{{ shift.notes|default:"—" }}</td>
+                    <td class="px-5 py-3">{% if shift.is_completed %}✓{% else %}—{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="px-5 py-12 text-center text-slate-400">No shifts scheduled</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
