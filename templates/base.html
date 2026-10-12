@@ -134,10 +134,10 @@
                     <i class="bi bi-people-fill"></i>
                     <span class="font-medium">Staff</span>
                 </a>
-                <a href="{% url 'ai_chat' %}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 {% if request.resolver_match.url_name == 'ai_chat' %}active{% endif %}">
+                <!-- <a href="{% url 'ai_chat' %}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 {% if request.resolver_match.url_name == 'ai_chat' %}active{% endif %}">
                     <i class="bi bi-robot"></i>
                     <span class="font-medium">AI Assistant</span>
-                </a>
+                </a> -->
                 {% if user.role == 'owner' or user.role == 'manager' or user.is_superuser %}
                 <div class="pt-3 mt-2 border-t border-slate-200 dark:border-slate-700">
                     <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Admin</p>
@@ -199,10 +199,10 @@
                             <i class="bi bi-moon-stars dark:hidden"></i>
                             <i class="bi bi-sun hidden dark:inline"></i>
                         </button>
-                        <a href="{% url 'ai_chat' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-medium shadow-md hover:shadow-lg transition">
+                        <!-- <a href="{% url 'ai_chat' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-medium shadow-md hover:shadow-lg transition">
                             <i class="bi bi-robot"></i>
                             Ask AI
-                        </a>
+                        </a> -->
                     </div>
                 </div>
             </header>
