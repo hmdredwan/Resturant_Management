@@ -59,7 +59,7 @@
 </head>
 <body class="bg-cream-50 text-charcoal-800 antialiased">
     <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-cream-50/90 backdrop-blur-md border-b border-cream-300/60">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-3">
             <a href="{% url 'home' %}" class="flex items-center gap-2.5 flex-shrink-0">
                 <div class="w-9 h-9 rounded-full border-2 border-gold-500 flex items-center justify-center">
                     <span class="font-display text-gold-600 font-bold">R</span>
@@ -73,8 +73,8 @@
                 <a href="{% url 'our_story' %}" class="nav-link hover:text-gold-600 transition {% if request.resolver_match.url_name == 'our_story' %}active font-semibold{% endif %}">Our Story</a>
                 <a href="{% url 'founder_message' %}" class="nav-link hover:text-gold-600 transition {% if request.resolver_match.url_name == 'founder_message' %}active font-semibold{% endif %}">Founder's Message</a>
             </div>
-            <div class="flex items-center gap-3">
-                <a href="{% url 'public_track_lookup' %}" class="hidden md:inline text-sm font-medium text-charcoal-700 hover:text-gold-600 transition">Track Order</a>
+            <div class="hidden sm:flex items-center gap-3">
+                <a href="{% url 'public_track_lookup' %}" class="hidden lg:inline text-sm font-medium text-charcoal-700 hover:text-gold-600 transition">Track Order</a>
                 {% if user.is_authenticated %}
                 <a href="{% url 'dashboard' %}" class="px-4 py-2 rounded-full border border-gold-400 text-gold-600 text-sm font-semibold hover:bg-gold-50 transition">Dashboard</a>
                 <form method="post" action="{% url 'logout' %}" class="inline">
@@ -88,6 +88,31 @@
                     Staff Login
                 </a>
                 {% endif %}
+            </div>
+            <button id="mobile-menu-toggle" type="button" class="lg:hidden inline-flex items-center justify-center w-11 h-11 rounded-xl text-charcoal-800 hover:bg-cream-200 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                    aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-navigation">
+                <i class="bi bi-list text-2xl" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div id="mobile-navigation" class="hidden lg:hidden bg-cream-50/95 backdrop-blur-md border-t border-cream-300/60 shadow-lg">
+            <div class="max-w-6xl mx-auto px-6 py-3 flex flex-col text-sm font-medium text-charcoal-700">
+                <a href="{% url 'public_menu' %}" class="mobile-nav-link py-3 border-b border-cream-300/60 hover:text-gold-600 transition">Menu</a>
+                <a href="{% url 'catering' %}" class="mobile-nav-link py-3 border-b border-cream-300/60 hover:text-gold-600 transition">Catering</a>
+                <a href="{% url 'consultancy' %}" class="mobile-nav-link py-3 border-b border-cream-300/60 hover:text-gold-600 transition">Consultancy</a>
+                <a href="{% url 'our_story' %}" class="mobile-nav-link py-3 border-b border-cream-300/60 hover:text-gold-600 transition">Our Story</a>
+                <a href="{% url 'founder_message' %}" class="mobile-nav-link py-3 border-b border-cream-300/60 hover:text-gold-600 transition">Founder's Message</a>
+                <a href="{% url 'public_track_lookup' %}" class="mobile-nav-link py-3 hover:text-gold-600 transition">Track Order</a>
+                <div class="sm:hidden flex flex-col gap-2 border-t border-cream-300/60 pt-3 mt-1">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="mobile-nav-link py-2 text-gold-600">Dashboard</a>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full text-left py-2 text-charcoal-700">Logout</button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="mobile-nav-link py-2 text-gold-600">Staff Login</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
@@ -143,6 +168,31 @@
     </footer>
 
     <script>
+        const menuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileNavigation = document.getElementById('mobile-navigation');
+        const closeMobileNavigation = () => {
+            mobileNavigation.classList.add('hidden');
+            menuToggle.setAttribute('aria-expanded', 'false');
+            menuToggle.setAttribute('aria-label', 'Open navigation menu');
+            menuToggle.innerHTML = '<i class="bi bi-list text-2xl" aria-hidden="true"></i>';
+        };
+        menuToggle.addEventListener('click', () => {
+            const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+            mobileNavigation.classList.toggle('hidden', isOpen);
+            menuToggle.setAttribute('aria-expanded', String(!isOpen));
+            menuToggle.setAttribute('aria-label', isOpen ? 'Open navigation menu' : 'Close navigation menu');
+            menuToggle.innerHTML = `<i class="bi ${isOpen ? 'bi-list' : 'bi-x-lg'} text-2xl" aria-hidden="true"></i>`;
+        });
+        mobileNavigation.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', closeMobileNavigation);
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeMobileNavigation();
+        });
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) closeMobileNavigation();
+        });
+
         const reveals = document.querySelectorAll('.reveal');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
