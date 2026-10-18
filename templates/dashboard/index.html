@@ -113,16 +113,19 @@
                     <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500">
                         <tr>
                             <th class="text-left px-5 py-3 font-medium">Order</th>
-                            <th class="text-left px-5 py-3 font-medium">Table</th>
+                            <th class="text-left px-5 py-3 font-medium hidden lg:table-cell">Table</th>
                             <th class="text-left px-5 py-3 font-medium">Status</th>
                             <th class="text-right px-5 py-3 font-medium">Total</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                         {% for order in recent_orders %}
-                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition cursor-pointer" onclick="openOrderModal({{ order.id }})">
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition cursor-pointer"
+                            onclick="openOrderModal({{ order.id }})"
+                            data-order-id="{{ order.id }}"
+                            role="button" tabindex="0" aria-label="View order {{ order.order_number }}">
                             <td class="px-5 py-3 font-medium text-sky-600">{{ order.order_number }}</td>
-                            <td class="px-5 py-3">{{ order.table.number|default:"—" }}</td>
+                            <td class="px-5 py-3 hidden lg:table-cell">{{ order.table.number|default:"—" }}</td>
                             <td class="px-5 py-3">
                                 <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium
                                     {% if order.status == 'completed' or order.status == 'served' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300
@@ -150,9 +153,9 @@
                 <h3 class="font-semibold mb-4">Top Selling (7 days)</h3>
                 <div class="space-y-3">
                     {% for item in top_items %}
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm">{{ item.menu_item__name }}</span>
-                        <span class="text-sm font-semibold text-sky-600">{{ item.qty }} sold</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm truncate">{{ item.menu_item__name }}</span>
+                        <span class="text-sm font-semibold text-sky-600 whitespace-nowrap">{{ item.qty }} sold</span>
                     </div>
                     {% empty %}
                     <p class="text-sm text-slate-400">No sales data yet</p>
@@ -167,9 +170,9 @@
                 </h3>
                 <div class="space-y-2">
                     {% for item in low_stock %}
-                    <div class="flex items-center justify-between text-sm p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20">
-                        <span>{{ item.name }}</span>
-                        <span class="font-medium text-amber-600">{{ item.current_stock }} {{ item.unit }}</span>
+                    <div class="flex items-center justify-between gap-2 text-sm p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+                        <span class="truncate">{{ item.name }}</span>
+                        <span class="font-medium text-amber-600 whitespace-nowrap">{{ item.current_stock }} {{ item.unit }}</span>
                     </div>
                     {% empty %}
                     <p class="text-sm text-slate-400">All stock levels are good ✓</p>
@@ -268,6 +271,14 @@ new Chart(topCtx, {
                 ticks: { color: textColor }
             }
         }
+    }
+});
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const row = e.target.closest ? e.target.closest('[data-order-id]') : null;
+    if (row) {
+        e.preventDefault();
+        openOrderModal(row.dataset.orderId);
     }
 });
 </script>

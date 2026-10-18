@@ -11,7 +11,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from django.contrib.auth import get_user_model
-from apps.menu.models import Category, MenuItem
+from apps.menu.models import Category, MenuItem, MenuItemVariant
 from apps.inventory.models import Ingredient
 from apps.orders.models import Table
 from decimal import Decimal
@@ -68,6 +68,18 @@ for cat_name, name, desc, price in items:
     )
     if created:
         print(f"✓ Menu item: {name}")
+
+# Sample item variants (different styles of the same dish, e.g. burgers)
+burger_item = MenuItem.objects.filter(name="Beef Burger").first()
+if burger_item:
+    for variant_name, adjustment in [("Large", Decimal("1.00")), ("Extra Cheese", Decimal("0.80"))]:
+        variant, created = MenuItemVariant.objects.get_or_create(
+            menu_item=burger_item,
+            name=variant_name,
+            defaults={"price_adjustment": adjustment, "is_available": True},
+        )
+        if created:
+            print(f"✓ Variant: {variant_name}")
 
 # Sample ingredients
 ingredients = [

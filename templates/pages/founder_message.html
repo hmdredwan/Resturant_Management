@@ -1,0 +1,27 @@
+{% extends "public_base.html" %}
+{% block title %}Founder's Message{% endblock %}
+{% block meta_description %}A personal message from our founder on craft, hospitality, and what comes next.{% endblock %}
+{% block content %}
+<section class="py-20">
+    <div class="max-w-5xl mx-auto px-6 reveal">
+        <div class="bg-white rounded-3xl shadow-sm border border-cream-200 overflow-hidden md:flex">
+            <div class="md:w-2/5 flex-shrink-0">
+                <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=600&h=800&fit=crop&q=80" alt="Founder" class="w-full h-full object-cover min-h-[320px]">
+            </div>
+            <div class="p-8 md:p-12 flex-1">
+                <p class="text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-3">Founder's Message</p>
+                <h1 class="font-display text-3xl md:text-4xl font-bold text-charcoal-900 mb-6">"Cooking is how we say we care."</h1>
+                <div class="space-y-4 text-charcoal-700/70 leading-relaxed text-sm md:text-base">
+                    <p>When we opened our doors, the goal was never to be the biggest restaurant — only to be the one people remember. A dish made honestly, a table that feels like yours, a team that treats service as a craft.</p>
+                    <p>The pages of this site represent what we have become: a dining room, a catering team, and a consultancy for operators who believe, as we do, that food matters most when it connects people.</p>
+                    <p>Thank you for being part of our story. We have much more to build together.</p>
+                </div>
+                <div class="mt-8 pt-6 border-t border-cream-200">
+                    <p class="font-display text-xl font-semibold text-charcoal-900">Founder & Executive Chef</p>
+                    <p class="text-sm text-charcoal-700/50">Restaurant Group</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

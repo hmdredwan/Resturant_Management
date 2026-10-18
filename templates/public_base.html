@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Restaurant{% endblock %} — Restaurant</title>
+    <meta name="description" content="{% block meta_description %}Award-winning dining, catering, and culinary consultancy.{% endblock %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { display: ['Playfair Display', 'Georgia', 'serif'], sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        cream: { 50: '#fefdfb', 100: '#faf8f5', 200: '#f5f0e8', 300: '#ebe3d6' },
+                        gold: { 400: '#d4a574', 500: '#c4925a', 600: '#a87a45' },
+                        charcoal: { 700: '#3d3a36', 800: '#2c2a27', 900: '#1a1917' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .font-display { font-family: 'Playfair Display', Georgia, serif; }
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.22,1,0.36,1); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .btn-gold {
+            background: linear-gradient(135deg, #d4a574, #c4925a);
+            transition: all 0.3s ease;
+        }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -8px rgba(196,146,90,0.5); }
+        .nav-link.active { color: #a87a45; }
+
+        /* Shared entrance & floating animations */
+        @keyframes pubFadeUp {
+            from { opacity: 0; transform: translateY(34px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pubScaleIn {
+            from { opacity: 0; transform: scale(0.94); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pubFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-18px); }
+        }
+        .animate-fade-up { animation: pubFadeUp 0.9s cubic-bezier(0.22,1,0.36,1) both; }
+        .animate-scale-in { animation: pubScaleIn 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+        .animate-float { animation: pubFloat 6s ease-in-out infinite; }
+        .pub-delay-1 { animation-delay: 0.15s; }
+        .pub-delay-2 { animation-delay: 0.3s; }
+        .pub-delay-3 { animation-delay: 0.45s; }
+        .pub-delay-4 { animation-delay: 0.6s; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-cream-50 text-charcoal-800 antialiased">
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-cream-50/90 backdrop-blur-md border-b border-cream-300/60">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+            <a href="{% url 'home' %}" class="flex items-center gap-2.5 flex-shrink-0">
+                <div class="w-9 h-9 rounded-full border-2 border-gold-500 flex items-center justify-center">
+                    <span class="font-display text-gold-600 font-bold">R</span>
+                </div>
+                <span class="font-display text-lg font-semibold tracking-wide hidden sm:inline">Restaurant</span>
+            </a>
+            <div class="hidden lg:flex items-center gap-7 text-sm font-medium text-charcoal-700">
+                <a href="{% url 'public_menu' %}" class="nav-link hover:text-gold-600 transition {% if request.resolver_match.url_name == 'public_menu' %}active font-semibold{% endif %}">Menu</a>
+                <a href="{% url 'catering' %}" class="nav-link hover:text-gold-600 transition {% if request.resolver_match.url_name == 'catering' %}active font-semibold{% endif %}">Catering</a>
+                <a href="{% url 'consultancy' %}" class="nav-link hover:text-gold-600 transition {% if request.resolver_match.url_name == 'consultancy' %}active font-semibold{% endif %}">Consultancy</a>
+                <a href="{% url 'our_story' %}" class="nav-link hover:text-gold-600 transition {% if request.resolver_match.url_name == 'our_story' %}active font-semibold{% endif %}">Our Story</a>
+                <a href="{% url 'founder_message' %}" class="nav-link hover:text-gold-600 transition {% if request.resolver_match.url_name == 'founder_message' %}active font-semibold{% endif %}">Founder's Message</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{% url 'public_track_lookup' %}" class="hidden md:inline text-sm font-medium text-charcoal-700 hover:text-gold-600 transition">Track Order</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="px-4 py-2 rounded-full border border-gold-400 text-gold-600 text-sm font-semibold hover:bg-gold-50 transition">Dashboard</a>
+                <form method="post" action="{% url 'logout' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 rounded-full bg-charcoal-900 text-white text-sm font-semibold hover:bg-gold-600 transition">
+                        Logout
+                    </button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}" class="px-5 py-2 rounded-full btn-gold text-white text-sm font-semibold shadow-md">
+                    Staff Login
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-20">
+        {% if messages %}
+        <div class="max-w-6xl mx-auto px-6 mt-4">
+            {% for message in messages %}
+            <div class="mb-3 px-4 py-3 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 animate-fade-in">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-charcoal-900 text-white/70 mt-20">
+        <div class="max-w-6xl mx-auto px-6 py-12 grid md:grid-cols-4 gap-8">
+            <div>
+                <div class="flex items-center gap-2.5 mb-4">
+                    <div class="w-9 h-9 rounded-full border-2 border-gold-500 flex items-center justify-center">
+                        <span class="font-display text-gold-600 font-bold">R</span>
+                    </div>
+                    <span class="font-display text-lg font-semibold text-white">Restaurant</span>
+                </div>
+                <p class="text-sm leading-relaxed">Crafted cuisine, impeccable service, unforgettable evenings.</p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-white mb-3">Explore</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="{% url 'public_menu' %}" class="hover:text-gold-400 transition">Menu</a></li>
+                    <li><a href="{% url 'catering' %}" class="hover:text-gold-400 transition">Catering</a></li>
+                    <li><a href="{% url 'consultancy' %}" class="hover:text-gold-400 transition">Consultancy</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold text-white mb-3">Company</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="{% url 'our_story' %}" class="hover:text-gold-400 transition">Our Story</a></li>
+                    <li><a href="{% url 'founder_message' %}" class="hover:text-gold-400 transition">Founder's Message</a></li>
+                    <li><a href="{% url 'public_track_lookup' %}" class="hover:text-gold-400 transition">Track Order</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold text-white mb-3">Contact</h4>
+                <p class="text-sm">{{ restaurant.address|default:"123 Gourmet Street" }}</p>
+                <p class="text-sm mt-1">{{ restaurant.phone|default:"+1 (555) 123-4567" }}</p>
+                <p class="text-sm mt-1">{{ restaurant.email|default:"hello@restaurant.com" }}</p>
+            </div>
+        </div>
+        <div class="border-t border-white/10 text-center py-5 text-xs text-white/40">
+            © {% now "Y" %} Restaurant. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        const reveals = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        reveals.forEach(el => observer.observe(el));
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

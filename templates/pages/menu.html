@@ -1,0 +1,298 @@
+{% extends "public_base.html" %}
+{% block title %}Menu{% endblock %}
+{% block meta_description %}Explore our full menu of seasonal dishes, available to order online or reserve for your visit.{% endblock %}
+
+{% block content %}
+<!-- ── Hero ─────────────────────────────────────────── -->
+<section class="relative overflow-hidden pt-16 pb-14">
+    <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div class="animate-float absolute -top-20 right-6 w-72 h-72 rounded-full bg-gold-400/25 blur-3xl md:w-96 md:h-96"></div>
+        <div class="animate-float absolute top-44 left-2 w-44 h-44 rounded-full bg-cream-200/70 blur-2xl md:w-56 md:h-56" style="animation-delay: 1.4s;"></div>
+        <div class="animate-float absolute bottom-10 right-1/4 w-28 h-28 rounded-full bg-gold-400/15 blur-2xl" style="animation-delay: 2.6s;"></div>
+    </div>
+
+    <div class="relative max-w-6xl mx-auto px-6 text-center">
+        <p class="animate-fade-up text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-4">Our Menu</p>
+        <h1 class="animate-fade-up pub-delay-1 font-display text-5xl md:text-6xl font-bold leading-[1.05] text-charcoal-900 mb-6">
+            Crafted with intention
+        </h1>
+        <div class="gold-line animate-fade-up pub-delay-2 mx-auto mb-6"></div>
+        <p class="animate-fade-up pub-delay-2 text-lg text-charcoal-700/70 max-w-xl mx-auto leading-relaxed">
+            Seasonal ingredients, refined technique, and plates designed to be remembered.
+        </p>
+        <div class="animate-fade-up pub-delay-3 flex flex-wrap justify-center gap-3 mt-9">
+            <span class="px-4 py-2 rounded-full bg-white border border-cream-300 text-sm text-charcoal-700 shadow-sm">🍽️ Dine-in &amp; take away</span>
+            <span class="px-4 py-2 rounded-full bg-white border border-cream-300 text-sm text-charcoal-700 shadow-sm">🛵 Free city delivery</span>
+            <span class="px-4 py-2 rounded-full bg-white border border-cream-300 text-sm text-charcoal-700 shadow-sm">🥗 Dietary options available</span>
+        </div>
+    </div>
+</section>
+
+<!-- ── Category filters ───────────────────────────── -->
+<section class="max-w-6xl mx-auto px-6 pb-4">
+    <div class="flex flex-wrap items-center justify-center gap-2" id="menu-filters">
+        <button type="button" data-filter="all" class="menu-filter active px-5 py-2.5 rounded-full text-sm font-semibold bg-charcoal-900 text-white shadow-md">
+            <i class="bi bi-grid-fill mr-1"></i> All
+        </button>
+        {% for category in categories %}
+        {% if category.items.all %}
+        <button type="button" data-filter="cat-{{ category.id }}" class="menu-filter px-5 py-2.5 rounded-full text-sm font-semibold bg-white border border-cream-300 text-charcoal-700 hover:border-gold-400 hover:text-gold-600 transition">
+            <span class="mr-1">{{ category.icon|default:"🍽️" }}</span>
+            {{ category.name }}
+            <span class="ml-1.5 px-2 py-0.5 rounded-full bg-cream-200 text-[11px] text-charcoal-700">{{ category.items.all|length }}</span>
+        </button>
+        {% endif %}
+        {% endfor %}
+    </div>
+    <p class="text-center text-xs text-charcoal-700/50 mt-4">
+        Showing {{ available_items|length }} available dishes
+    </p>
+</section>
+
+<!-- ── Menu grid ──────────────────────────────────── -->
+<section class="max-w-6xl mx-auto px-6 pb-28">
+    <div id="menu-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for item in available_items %}
+        <article class="menu-card bg-white rounded-3xl overflow-hidden shadow-sm border border-cream-200 hover:shadow-2xl transition-all duration-500 reveal"
+                 data-category="cat-{{ item.category_id }}">
+            <div class="relative h-52 overflow-hidden">
+                {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-full object-cover menu-img">
+                {% else %}
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop&q=80" alt="{{ item.name }}" class="w-full h-full object-cover menu-img">
+                {% endif %}
+                <div class="absolute inset-x-0 top-0 p-4 flex justify-between items-start">
+                    {% if item.is_featured %}
+                    <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-gold-500 text-white shadow-lg animate-scale-in">
+                        <i class="bi bi-star-fill mr-1"></i> Chef's pick
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/45 to-transparent pointer-events-none"></div>
+            </div>
+
+            <div class="p-6">
+                <div class="flex justify-between items-start gap-3 mb-2">
+                    <h3 class="font-display text-xl font-semibold leading-snug">{{ item.name }}</h3>
+                    <span class="text-gold-600 font-semibold whitespace-nowrap">{{ currency_symbol }}{{ item.price }}</span>
+                </div>
+
+                {% if item.description %}
+                <p class="text-sm text-charcoal-700/60 leading-relaxed mb-4">{{ item.description }}</p>
+                {% endif %}
+
+                {% if item.variants.all %}
+                <!-- Variant picker -->
+                <div class="mb-4">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-charcoal-700/50 mb-2">Choose your style</p>
+                    <div class="variants-group flex flex-wrap gap-2" data-item="{{ item.id }}">
+                        <button type="button" class="variant-pill" data-variant-id="" data-variant-name="">
+                            <i class="bi bi-egg-fried mr-1"></i> Standard
+                            <span class="ml-1 text-xs">{{ currency_symbol }}{{ item.price }}</span>
+                        </button>
+                        {% for variant in item.variants.all %}
+                        {% if variant.is_available %}
+                        <button type="button" class="variant-pill" data-variant-id="{{ variant.id }}" data-variant-name="{{ variant.name }}">
+                            {{ variant.name }}
+                            {% if variant.adjustment_display %}
+                            <span class="text-xs">{{ currency_symbol }}{{ variant.adjustment_display }}</span>
+                            {% endif %}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Item details -->
+                <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-charcoal-700/50 mb-5">
+                    {% if item.portion_size %}<span>Portion: {{ item.portion_size }}</span>{% endif %}
+                    {% if item.calories %}<span>{{ item.calories }} kcal</span>{% endif %}
+                    {% if item.preparation_time %}<span>Ready in {{ item.preparation_time }} min</span>{% endif %}
+                    {% if item.spice_level %}<span>Spice: {{ item.get_spice_level_display }}</span>{% endif %}
+                    {% if item.is_vegetarian %}<span class="text-emerald-600 font-medium">Veg</span>{% endif %}
+                    {% if item.is_vegan %}<span class="text-emerald-600 font-medium">Vegan</span>{% endif %}
+                    {% if item.is_gluten_free %}<span class="text-emerald-600 font-medium">GF</span>{% endif %}
+                </div>
+
+                {% if item.allergens %}
+                <p class="text-[11px] text-amber-700 mb-4">
+                    <i class="bi bi-exclamation-triangle mr-1"></i> Contains: {{ item.allergens }}
+                </p>
+                {% endif %}
+
+                <button type="button"
+                        class="add-to-order w-full px-5 py-3 rounded-full bg-charcoal-900 text-white text-sm font-semibold hover:bg-gold-600 hover:shadow-lg transition"
+                        data-id="{{ item.id }}">
+                    Add to Order
+                    <i class="bi bi-cart-plus ml-1"></i>
+                </button>
+            </div>
+        </article>
+        {% empty %}
+        <div class="col-span-full text-center py-20 bg-white rounded-3xl border border-cream-200 shadow-sm">
+            <i class="bi bi-utensils text-4xl text-gold-500 mb-3"></i>
+            <p class="font-display text-xl text-charcoal-700">Our menu is being prepared.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<div id="menu-cart-fab" class="fixed bottom-6 right-6 z-40">
+    <a href="/?open_cart=1" class="relative w-14 h-14 rounded-full bg-charcoal-900 text-white shadow-2xl hover:bg-gold-600 transition flex items-center justify-center">
+        <i class="bi bi-bag text-xl"></i>
+        <span id="menu-cart-count" class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gold-500 text-white text-xs font-bold flex items-center justify-center">0</span>
+    </a>
+</div>
+
+{% block extra_css %}
+<style>
+    /* Gold accent line under the hero title */
+    .gold-line {
+        width: 64px;
+        height: 2px;
+        margin: 0 auto 24px;
+        background: linear-gradient(90deg, #d4a574, #c4925a);
+    }
+
+    /* Category filter pills */
+    .menu-filter { transition: all 0.3s ease; }
+    .menu-filter.active { box-shadow: 0 10px 25px -8px rgba(26, 25, 23, 0.35); }
+
+    /* Entrance animation for cards revealed after a filter change */
+    .card-in { animation: menuCardIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    @keyframes menuCardIn {
+        from { opacity: 0; transform: translateY(26px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Variant pills */
+    .variant-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 0.9rem;
+        border-radius: 999px;
+        border: 1px solid #ebe3d6;
+        background: #ffffff;
+        color: #3d3a36;
+        font-size: 0.8rem;
+        font-weight: 500;
+        line-height: 1.4;
+        transition: all 0.25s ease;
+    }
+    .variant-pill:hover {
+        border-color: #d4a574;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px -6px rgba(196, 146, 90, 0.35);
+    }
+    .variant-pill.selected {
+        background: linear-gradient(135deg, #d4a574, #c4925a);
+        border-color: transparent;
+        color: #ffffff;
+    }
+    .variant-pill.selected .text-xs { color: rgba(255, 255, 255, 0.85); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const CART_KEY = 'rr_cart';
+    const selectedVariants = {}; // itemId -> variantId ('' means standard)
+
+    function getCart() { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
+    function saveCart(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); updateBadge(); }
+    function updateBadge() {
+        const n = getCart().reduce((a, b) => a + b.quantity, 0);
+        const el = document.getElementById('menu-cart-count');
+        if (el) el.textContent = n;
+    }
+
+    /* ── Variant selection ─────────────────────────── */
+    function setSelectedVariant(itemId, variantId) {
+        document.querySelectorAll('.variants-group').forEach(group => {
+            if (group.dataset.item !== String(itemId)) return;
+            group.querySelectorAll('.variant-pill').forEach(pill => {
+                const pillVariantId = pill.dataset.variantId || '';
+                pill.classList.toggle('selected', pillVariantId === variantId);
+            });
+        });
+        selectedVariants[itemId] = variantId;
+    }
+    function getSelectedVariant(itemId) {
+        return selectedVariants[itemId] || '';
+    }
+
+    /* ── Category filters ──────────────────────────── */
+    function setFilter(filter) {
+        document.querySelectorAll('.menu-filter').forEach(btn => {
+            const active = btn.dataset.filter === filter;
+            btn.classList.toggle('active', active);
+            btn.classList.toggle('bg-charcoal-900', active);
+            btn.classList.toggle('text-white', active);
+            btn.classList.toggle('border-cream-300', active ? false : true);
+            btn.classList.toggle('hover:border-gold-400', !active);
+        });
+        document.querySelectorAll('#menu-grid article').forEach(card => {
+            const show = filter === 'all' || card.dataset.category === filter;
+            card.classList.toggle('d-none', !show);
+            if (show) {
+                card.classList.remove('d-none');
+                // Re-trigger the entrance animation on every filter change
+                card.classList.remove('card-in');
+                void card.offsetWidth;
+                card.classList.add('card-in');
+            }
+        });
+    }
+
+    document.querySelectorAll('.menu-filter').forEach(btn => {
+        btn.addEventListener('click', () => setFilter(btn.dataset.filter));
+    });
+
+    /* ── Add to order ──────────────────────────────── */
+    function addToOrder(btn) {
+        const itemId = btn.dataset.id;
+        const variantId = getSelectedVariant(itemId);
+        const cart = getCart();
+        const existing = cart.find(i => i.menu_item_id === itemId && i.variant_id === variantId);
+        if (existing) {
+            existing.quantity += 1;
+        } else {
+            cart.push({
+                menu_item_id: itemId,
+                variant_id: variantId,
+                quantity: 1,
+            });
+        }
+        saveCart(cart);
+        btn.innerHTML = '<i class="bi bi-check2 mr-1"></i> Added';
+        setTimeout(() => { btn.innerHTML = '<i class="bi bi-cart-plus mr-1"></i> Add to Order'; }, 1400);
+    }
+
+    /* Stagger the entrance of the cards */
+    window.addEventListener('load', () => {
+        document.querySelectorAll('#menu-grid article').forEach((card, i) => {
+            card.style.animationDelay = (i * 90) + 'ms';
+        });
+    });
+
+    document.addEventListener('click', e => {
+        const pill = e.target.closest('.variant-pill');
+        if (pill) {
+            const itemId = pill.closest('.variants-group').dataset.item;
+            const variantId = pill.dataset.variantId || '';
+            setSelectedVariant(itemId, variantId);
+            const addBtn = e.target.closest('.add-to-order');
+            if (addBtn) addToOrder(addBtn);
+            return;
+        }
+        const btn = e.target.closest('.add-to-order');
+        if (btn) addToOrder(btn);
+    });
+
+    updateBadge();
+</script>
+{% endblock %}
+
+{% endblock %}

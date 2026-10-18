@@ -1,0 +1,48 @@
+{% extends "public_base.html" %}
+{% block title %}Consultancy{% endblock %}
+{% block meta_description %}Strategic hospitality consultancy: menu engineering, training, operations and revenue growth.{% endblock %}
+{% block content %}
+<section class="py-20">
+    <div class="max-w-6xl mx-auto px-6 text-center mb-14 reveal">
+        <p class="text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-3">Consultancy</p>
+        <h1 class="font-display text-4xl md:text-5xl font-bold text-charcoal-900 mb-4">Build a restaurant that lasts</h1>
+        <div class="w-16 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto mb-4"></div>
+        <p class="text-charcoal-700/60 max-w-2xl mx-auto">We partner with operators, owners, and venues to design, refine, and scale food-and-hospitality businesses.</p>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+        {% for s in services %}
+        <div class="bg-white rounded-2xl border border-cream-200 p-6 shadow-sm hover:shadow-md transition reveal">
+            <div class="w-12 h-12 rounded-xl bg-cream-200 text-gold-600 flex items-center justify-center text-xl mb-4">
+                <i class="bi {{ s.icon }}"></i>
+            </div>
+            <h3 class="font-display text-lg font-semibold mb-2">{{ s.title }}</h3>
+            <p class="text-sm text-charcoal-700/60 leading-relaxed">{{ s.text }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 mb-20">
+        <h2 class="font-display text-3xl font-bold text-charcoal-900 text-center mb-10">Our approach</h2>
+        <div class="grid md:grid-cols-4 gap-6">
+            {% for p in process %}
+            <div class="reveal text-center">
+                <p class="font-display text-4xl font-bold text-gold-500/40 mb-2">{{ p.step }}</p>
+                <h3 class="font-display text-lg font-semibold mb-2">{{ p.title }}</h3>
+                <p class="text-sm text-charcoal-700/60">{{ p.text }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto px-6 text-center reveal">
+        <div class="bg-charcoal-900 text-white rounded-3xl p-10">
+            <h3 class="font-display text-2xl font-bold mb-3">Start a conversation</h3>
+            <p class="text-white/60 mb-6">Tell us where you are and where you want to be.</p>
+            <a href="mailto:{{ restaurant.email|default:'hello@restaurant.com' }}" class="inline-flex items-center gap-2 px-8 py-3 rounded-full btn-gold text-white font-semibold">
+                <i class="bi bi-envelope"></i> Contact Us
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

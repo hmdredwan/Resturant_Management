@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Your Order</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { display: ['Playfair Display', 'Georgia', 'serif'] } } } };
+    </script>
+    <style> body { font-family: Inter, system-ui, sans-serif; } .font-display { font-family: 'Playfair Display', Georgia, serif; } </style>
+</head>
+<body class="bg-cream-100 min-h-screen text-charcoal-800" style="background:#faf8f5">
+    <div class="max-w-md mx-auto px-6 py-16">
+        <div class="text-center mb-8">
+            <h1 class="font-display text-3xl font-bold">Track Your Order</h1>
+            <p class="text-charcoal-700/60 mt-2">Enter your order number to see its live status.</p>
+        </div>
+        {% if error %}<div class="mb-4 px-4 py-3 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm">{{ error }}</div>{% endif %}
+        <form method="post" class="bg-white rounded-3xl shadow-sm border border-cream-200 p-6 space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-medium text-charcoal-700/70 mb-1">Order number</label>
+                <input name="order_number" required class="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500" placeholder="ORD-20261013-XXXX">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-charcoal-700/70 mb-1">Phone (optional)</label>
+                <input name="phone" type="tel" class="w-full px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500" placeholder="The phone used at checkout">
+            </div>
+            <button type="submit" class="w-full px-6 py-3 rounded-full bg-charcoal-900 text-white font-semibold hover:bg-gold-600 transition">Track Order</button>
+        </form>
+        <p class="text-center text-xs text-charcoal-700/50 mt-6"><a href="/" class="hover:text-gold-600">← Back to menu</a></p>
+    </div>
+</body>
+</html>

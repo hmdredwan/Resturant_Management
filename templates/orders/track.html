@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Order — {{ order.order_number }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { display: ['Playfair Display', 'Georgia', 'serif'], sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        cream: { 50: '#fefdfb', 100: '#faf8f5', 200: '#f5f0e8', 300: '#ebe3d6' },
+                        gold: { 400: '#d4a574', 500: '#c4925a', 600: '#a87a45' },
+                        charcoal: { 700: '#3d3a36', 800: '#2c2a27', 900: '#1a1917' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .font-display { font-family: 'Playfair Display', Georgia, serif; }
+        .timeline-step { transition: all 0.4s ease; }
+        .timeline-step.done .dot { background: #c4925a; border-color: #c4925a; color: #fff; }
+        .timeline-step.active .dot { background: #fff; border-color: #c4925a; color: #c4925a; box-shadow: 0 0 0 6px rgba(196,146,90,0.18); }
+        .pulse { animation: pulse 1.6s ease-in-out infinite; }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    </style>
+</head>
+<body class="bg-cream-100 text-charcoal-800 min-h-screen">
+    <header class="bg-white/90 backdrop-blur border-b border-cream-300">
+        <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full border-2 border-gold-500 flex items-center justify-center">
+                    <span class="font-display text-gold-600 font-bold">R</span>
+                </div>
+                <span class="font-display text-lg font-semibold">Restaurant</span>
+            </a>
+            <a href="/" class="text-sm font-medium text-charcoal-700 hover:text-gold-600"><i class="bi bi-arrow-left"></i> Back to menu</a>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-6 py-10">
+        <div class="mb-8 text-center">
+            <p class="text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-2">Order Tracking</p>
+            <h1 class="font-display text-4xl md:text-5xl font-bold text-charcoal-900">Order <span id="order-number">{{ order.order_number }}</span></h1>
+            <p class="text-charcoal-700/60 mt-2">Placed on <span id="created-at">{{ order.created_at|date:"M d, Y · H:i" }}</span></p>
+        </div>
+
+        <!-- Status card -->
+        <section class="bg-white rounded-3xl shadow-sm border border-cream-200 p-6 md:p-8 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <div>
+                    <p class="text-xs uppercase tracking-widest text-charcoal-700/50">Current status</p>
+                    <p id="status-display" class="font-display text-2xl font-bold text-gold-600 mt-1">{{ order.get_status_display }}</p>
+                </div>
+                <div class="text-sm text-charcoal-700/60">
+                    <i class="bi bi-arrow-repeat pulse inline-block mr-1"></i> Live updating — last refreshed <span id="last-updated">just now</span>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <ol class="flex items-center justify-between gap-2" id="timeline">
+                <li class="timeline-step flex-1 text-center" data-status="confirmed">
+                    <div class="dot w-10 h-10 rounded-full border-2 mx-auto flex items-center justify-center text-sm font-bold mb-2">1</div>
+                    <p class="text-xs font-medium">Received</p>
+                </li>
+                <li class="timeline-step flex-1 text-center" data-status="preparing">
+                    <div class="dot w-10 h-10 rounded-full border-2 mx-auto flex items-center justify-center text-sm font-bold mb-2">2</div>
+                    <p class="text-xs font-medium">Preparing</p>
+                </li>
+                <li class="timeline-step flex-1 text-center" data-status="ready">
+                    <div class="dot w-10 h-10 rounded-full border-2 mx-auto flex items-center justify-center text-sm font-bold mb-2">3</div>
+                    <p class="text-xs font-medium">Ready</p>
+                </li>
+                <li class="timeline-step flex-1 text-center" data-status="served">
+                    <div class="dot w-10 h-10 rounded-full border-2 mx-auto flex items-center justify-center text-sm font-bold mb-2">4</div>
+                    <p class="text-xs font-medium">Served</p>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Items -->
+        <section class="bg-white rounded-3xl shadow-sm border border-cream-200 p-6 md:p-8 mb-6">
+            <h2 class="font-display text-xl font-semibold mb-4">Your items</h2>
+            <div id="items-list" class="divide-y divide-cream-200">
+                {% for item in order.items.all %}
+                <div class="py-3 flex items-center justify-between gap-3">
+                    <div>
+                        <p class="font-medium">{{ item.quantity }}× {{ item.menu_item.name }}{% if item.variant %} — {{ item.variant.name }}{% endif %}</p>
+                        {% if item.notes %}<p class="text-xs text-charcoal-700/50">{{ item.notes }}</p>{% endif %}
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm font-semibold text-gold-600">{{ item.quantity }} × {{ item.unit_price }}</span>
+                        <span class="block text-xs mt-1 px-2 py-0.5 rounded-full bg-cream-200">{{ item.get_status_display }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-6 border-t border-cream-200 pt-4 space-y-1 text-sm">
+                <div class="flex justify-between text-charcoal-700/70"><span>Subtotal</span><span id="subtotal">{{ order.subtotal }}</span></div>
+                <div class="flex justify-between text-charcoal-700/70"><span>Tax</span><span id="tax">{{ order.tax }}</span></div>
+                <div class="flex justify-between font-semibold text-base"><span>Total</span><span id="total">{{ order.total }}</span></div>
+            </div>
+        </section>
+
+        <p class="text-center text-xs text-charcoal-700/50 mt-6">
+            Bookmark this page or save your order number <strong>{{ order.order_number }}</strong> to track anytime.
+        </p>
+    </main>
+
+    <script>
+        const TOKEN = "{{ token }}";
+        const STATUS_ORDER = ["confirmed", "preparing", "ready", "served", "completed"];
+        const STATUS_LABEL = {
+            pending: "Pending",
+            confirmed: "Received",
+            preparing: "Preparing",
+            ready: "Ready for pickup",
+            served: "Served",
+            completed: "Completed",
+            cancelled: "Cancelled",
+        };
+
+        function updateTimeline(status) {
+            const steps = document.querySelectorAll('#timeline .timeline-step');
+            let currentIdx = STATUS_ORDER.indexOf(status);
+            if (status === "completed") currentIdx = STATUS_ORDER.length - 1;
+            if (status === "cancelled") currentIdx = -1;
+            steps.forEach((step, i) => {
+                step.classList.remove('done', 'active');
+                const cmp = STATUS_ORDER.indexOf(step.getAttribute('data-status'));
+                if (currentIdx >= cmp) step.classList.add('done');
+                else if (currentIdx + 1 === cmp) step.classList.add('active');
+            });
+        }
+
+        async function refresh() {
+            try {
+                const res = await fetch(`/api/orders/track/${TOKEN}/status/`);
+                if (!res.ok) return;
+                const d = await res.json();
+                document.getElementById('order-number').textContent = d.order_number;
+                document.getElementById('status-display').textContent = d.status_display || STATUS_LABEL[d.status] || d.status;
+                document.getElementById('subtotal').textContent = d.subtotal;
+                document.getElementById('tax').textContent = d.tax;
+                document.getElementById('total').textContent = d.total;
+                updateTimeline(d.status);
+
+                const list = document.getElementById('items-list');
+                list.innerHTML = '';
+                (d.items || []).forEach(it => {
+                    const row = document.createElement('div');
+                    row.className = 'py-3 flex items-center justify-between gap-3';
+                    row.innerHTML = `
+                        <div>
+                            <p class="font-medium">${it.quantity}× ${escapeHtml(it.name)}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-semibold text-gold-600">${it.quantity} × ${it.unit_price}</span>
+                            <span class="block text-xs mt-1 px-2 py-0.5 rounded-full bg-cream-200">${escapeHtml(it.status_display)}</span>
+                        </div>`;
+                    list.appendChild(row);
+                });
+                document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+                if (d.status === 'completed' || d.status === 'cancelled' || d.status === 'served') {
+                    // stop frequent polling after final
+                    clearInterval(window._poller);
+                }
+            } catch (e) { /* ignore */ }
+        }
+
+        function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+        updateTimeline("{{ order.status }}");
+        refresh();
+        window._poller = setInterval(refresh, 5000);
+    </script>
+</body>
+</html>

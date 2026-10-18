@@ -5,8 +5,10 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from apps.analytics import views as analytics_views
 from apps.analytics.landing import home as landing_home
+from apps.analytics import pages as pages_views
 from apps.ai_agent import views as ai_views
 from apps.orders import views as order_views
+from apps.orders import public_views as public_order_views
 from apps.orders import table_views
 from apps.menu import views as menu_views
 from apps.inventory import views as inventory_views
@@ -23,6 +25,13 @@ urlpatterns = [
 
     # Public homepage
     path("", landing_home, name="home"),
+
+    # Public pages
+    path("our-menu/", pages_views.public_menu, name="public_menu"),
+    path("catering/", pages_views.catering, name="catering"),
+    path("consultancy/", pages_views.consultancy, name="consultancy"),
+    path("our-story/", pages_views.our_story, name="our_story"),
+    path("founder-message/", pages_views.founder_message, name="founder_message"),
 
     # Dashboard (authenticated)
     path("dashboard/", analytics_views.dashboard, name="dashboard"),
@@ -46,11 +55,21 @@ urlpatterns = [
     path("api/orders/<int:order_id>/cancel/", order_views.cancel_order, name="api_cancel_order"),
     path("api/orders/<int:order_id>/edit/", order_views.edit_order, name="api_edit_order"),
 
+    # Public (guest) ordering & tracking
+    path("api/orders/public/create/", public_order_views.public_create_order, name="api_public_create_order"),
+    path("track/", public_order_views.public_track_lookup, name="public_track_lookup"),
+    path("track/<uuid:token>/", public_order_views.public_order_track, name="public_order_track"),
+    path("api/orders/track/<uuid:token>/status/", public_order_views.public_order_status_api, name="api_public_order_status"),
+
     # Menu
     path("menu/", menu_views.menu_list, name="menu_list"),
     path("menu/item/<int:item_id>/toggle/", menu_views.menu_item_toggle, name="menu_item_toggle"),
+    path("menu/item/<int:item_id>/delete/", menu_views.menu_item_delete, name="menu_item_delete"),
     path("menu/item/create/", menu_views.menu_item_create, name="menu_item_create"),
     path("menu/category/create/", menu_views.category_create, name="category_create"),
+    path("menu/variant/create/", menu_views.variant_create, name="menu_variant_create"),
+    path("menu/variant/<int:variant_id>/update/", menu_views.variant_update, name="menu_variant_update"),
+    path("menu/variant/<int:variant_id>/delete/", menu_views.variant_delete, name="menu_variant_delete"),
 
     # Inventory
     path("inventory/", inventory_views.inventory_list, name="inventory_list"),

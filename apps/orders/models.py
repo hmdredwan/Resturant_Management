@@ -49,6 +49,7 @@ class Order(models.Model):
         DELIVERY = "delivery", "Delivery"
 
     order_number = models.CharField(max_length=20, unique=True, editable=False)
+    tracking_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     table = models.ForeignKey(Table, null=True, blank=True, on_delete=models.SET_NULL, related_name="orders")
     customer = models.ForeignKey("customers.Customer", null=True, blank=True, on_delete=models.SET_NULL, related_name="orders")
     order_type = models.CharField(max_length=20, choices=OrderType.choices, default=OrderType.DINE_IN)

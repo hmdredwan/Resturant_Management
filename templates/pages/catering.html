@@ -1,0 +1,56 @@
+{% extends "public_base.html" %}
+{% block title %}Catering{% endblock %}
+{% block meta_description %}Bespoke catering for intimate gatherings, corporate events, and grand celebrations.{% endblock %}
+{% block content %}
+<section class="py-20">
+    <div class="max-w-6xl mx-auto px-6 text-center mb-14 reveal">
+        <p class="text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-3">Catering</p>
+        <h1 class="font-display text-4xl md:text-5xl font-bold text-charcoal-900 mb-4">Exceptional events, effortlessly delivered</h1>
+        <div class="w-16 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto mb-4"></div>
+        <p class="text-charcoal-700/60 max-w-2xl mx-auto">From private dinners to landmark celebrations, our team designs bespoke culinary experiences that reflect your occasion.</p>
+    </div>
+    <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8 mb-20">
+        {% for p in packages %}
+        <div class="bg-white rounded-3xl border border-cream-200 shadow-sm p-8 hover:shadow-lg transition reveal">
+            <div class="w-14 h-14 rounded-2xl bg-cream-200 text-gold-600 flex items-center justify-center text-2xl mb-5">
+                <i class="bi {{ p.icon }}"></i>
+            </div>
+            <h3 class="font-display text-xl font-semibold mb-1">{{ p.name }}</h3>
+            <p class="text-sm text-charcoal-700/50 mb-3">{{ p.guests }}</p>
+            <p class="text-gold-600 font-semibold mb-5">{{ p.price }}</p>
+            <ul class="space-y-2 text-sm text-charcoal-700/70">
+                {% for item in p.items %}
+                <li class="flex items-start gap-2"><i class="bi bi-check2 text-gold-500 mt-0.5"></i><span>{{ item }}</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="max-w-4xl mx-auto px-6">
+        <div class="bg-white rounded-3xl shadow-sm border border-cream-200 p-8 md:p-10 reveal">
+            <h2 class="font-display text-2xl font-semibold mb-2">Request a tailored proposal</h2>
+            <p class="text-charcoal-700/60 text-sm mb-6">Tell us about your event and we'll be in touch within one business day.</p>
+            <form method="post" class="grid md:grid-cols-2 gap-4">
+                {% csrf_token %}
+                <input name="name" required placeholder="Your name" class="px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500">
+                <input name="email" type="email" placeholder="Email address" class="px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500">
+                <input name="phone" type="tel" placeholder="Phone number" class="px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500">
+                <select name="event_type" class="px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500">
+                    <option value="">Event type</option>
+                    <option>Private dinner</option>
+                    <option>Corporate event</option>
+                    <option>Wedding</option>
+                    <option>Other</option>
+                </select>
+                <input name="event_date" type="date" class="px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500">
+                <input name="guests" type="number" min="1" placeholder="Expected guests" class="px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500">
+                <textarea name="message" rows="4" placeholder="Tell us about your vision, dietary needs, budget…" class="md:col-span-2 px-4 py-3 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500"></textarea>
+                <button type="submit" class="md:col-span-2 px-6 py-3 rounded-full btn-gold text-white font-semibold">
+                    Send Inquiry
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

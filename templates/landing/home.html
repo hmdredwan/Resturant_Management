@@ -126,16 +126,24 @@
                 <span class="font-display text-xl font-semibold tracking-wide text-charcoal-800">Restaurant</span>
             </a>
             <div class="hidden md:flex items-center gap-8 text-sm font-medium text-charcoal-700">
-                <a href="#about" class="hover:text-gold-600 transition">About</a>
-                <a href="#menu" class="hover:text-gold-600 transition">Our Food</a>
-                <a href="#quality" class="hover:text-gold-600 transition">Quality</a>
-                <a href="#mission" class="hover:text-gold-600 transition">Mission</a>
+                <a href="{% url 'our_story' %}" class="hover:text-gold-600 transition">Our Story</a>
+                <a href="{% url 'public_menu' %}" class="hover:text-gold-600 transition">Menu</a>
+                <a href="{% url 'catering' %}" class="hover:text-gold-600 transition">Catering</a>
+                <a href="{% url 'consultancy' %}" class="hover:text-gold-600 transition">Consultancy</a>
+                <a href="{% url 'founder_message' %}" class="hover:text-gold-600 transition">Founder's Message</a>
+                <a href="{% url 'public_track_lookup' %}" class="hover:text-gold-600 transition">Track Order</a>
             </div>
             <div class="flex items-center gap-3">
                 {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="px-6 py-2.5 rounded-full btn-gold text-white text-sm font-semibold">
+                <a href="{% url 'dashboard' %}" class="px-5 py-2.5 rounded-full border border-gold-400 text-gold-600 text-sm font-semibold hover:bg-gold-50 transition">
                     Dashboard
                 </a>
+                <form method="post" action="{% url 'logout' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="px-5 py-2.5 rounded-full bg-charcoal-900 text-white text-sm font-semibold hover:bg-gold-600 transition">
+                        <i class="bi bi-box-arrow-right mr-1"></i> Logout
+                    </button>
+                </form>
                 {% else %}
                 <a href="{% url 'login' %}" class="px-6 py-2.5 rounded-full btn-gold text-white text-sm font-semibold shadow-md">
                     Staff Login
@@ -273,104 +281,86 @@
                 <p class="text-charcoal-700/60 max-w-lg mx-auto">Crafted with seasonal ingredients and plated with care for an unforgettable experience.</p>
             </div>
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Food cards -->
-                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm">
-                    <div class="h-48 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600&h=400&fit=crop&q=80"
-                             alt="Grilled ribeye steak"
-                             class="food-img w-full h-full object-cover"
-                             loading="lazy">
-                    </div>
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-display text-xl font-semibold">Grilled Ribeye</h3>
-                            <span class="text-gold-600 font-semibold">$32</span>
-                        </div>
-                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Premium aged beef, herb butter, roasted seasonal vegetables.</p>
-                    </div>
-                </div>
-
-                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm" style="transition-delay: 0.1s">
-                    <div class="h-48 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&h=400&fit=crop&q=80"
-                             alt="Lobster risotto"
-                             class="food-img w-full h-full object-cover"
-                             loading="lazy">
-                    </div>
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-display text-xl font-semibold">Lobster Risotto</h3>
-                            <span class="text-gold-600 font-semibold">$38</span>
-                        </div>
-                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Creamy arborio rice, fresh lobster, white wine & saffron.</p>
-                    </div>
-                </div>
-
-                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm" style="transition-delay: 0.2s">
-                    <div class="h-48 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1546793665-c74683f339c1?w=600&h=400&fit=crop&q=80"
-                             alt="Fresh garden salad"
-                             class="food-img w-full h-full object-cover"
-                             loading="lazy">
-                    </div>
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-display text-xl font-semibold">Garden Harvest</h3>
-                            <span class="text-gold-600 font-semibold">$18</span>
-                        </div>
-                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Organic greens, heirloom tomatoes, house vinaigrette.</p>
-                    </div>
-                </div>
-
-                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm">
-                    <div class="h-48 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=600&h=400&fit=crop&q=80"
-                             alt="Truffle pasta"
-                             class="food-img w-full h-full object-cover"
-                             loading="lazy">
-                    </div>
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-display text-xl font-semibold">Truffle Pasta</h3>
-                            <span class="text-gold-600 font-semibold">$28</span>
-                        </div>
-                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Handmade tagliatelle, black truffle, aged parmesan.</p>
-                    </div>
-                </div>
-
-                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm" style="transition-delay: 0.1s">
-                    <div class="h-48 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&h=400&fit=crop&q=80"
-                             alt="Chocolate dessert"
-                             class="food-img w-full h-full object-cover"
-                             loading="lazy">
-                    </div>
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-display text-xl font-semibold">Chocolate Soufflé</h3>
-                            <span class="text-gold-600 font-semibold">$14</span>
-                        </div>
-                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Dark chocolate, vanilla bean ice cream, gold leaf.</p>
-                    </div>
-                </div>
-
-                <div class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm" style="transition-delay: 0.2s">
-                    <div class="h-48 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&h=400&fit=crop&q=80"
-                             alt="Signature cocktails"
-                             class="food-img w-full h-full object-cover"
-                             loading="lazy">
-                    </div>
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-display text-xl font-semibold">House Cocktails</h3>
-                            <span class="text-gold-600 font-semibold">$16</span>
-                        </div>
-                        <p class="text-sm text-charcoal-700/60 leading-relaxed">Signature mixes with premium spirits and fresh botanicals.</p>
-                    </div>
-                </div>
+            <!-- Category filters -->
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-10">
+                <button type="button" data-filter="all"
+                        class="menu-filter px-5 py-2 rounded-full text-sm font-medium bg-charcoal-900 text-white transition">
+                    All Dishes
+                </button>
+                {% for category in categories %}
+                {% if category.items.all %}
+                <button type="button" data-filter="cat-{{ category.id }}"
+                        class="menu-filter px-5 py-2 rounded-full text-sm font-medium bg-white text-charcoal-700 border border-cream-300 hover:border-gold-400 transition">
+                    {{ category.icon|default:"🍽️" }} {{ category.name }}
+                </button>
+                {% endif %}
+                {% endfor %}
             </div>
+
+            {% if available_items %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="menu-grid">
+                {% for item in available_items %}
+                <article class="food-card reveal bg-white rounded-2xl overflow-hidden shadow-sm"
+                         data-category="cat-{{ item.category_id }}"
+                         itemscope itemtype="https://schema.org/MenuItem">
+                    <div class="h-48 overflow-hidden relative">
+                        {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}"
+                             class="food-img w-full h-full object-cover"
+                             loading="lazy" itemprop="image">
+                        {% else %}
+                        <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop&q=80"
+                             alt="{{ item.name }}" class="food-img w-full h-full object-cover" loading="lazy" itemprop="image">
+                        {% endif %}
+                        {% if item.is_featured %}
+                        <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gold-500 text-white shadow">Chef's pick</span>
+                        {% endif %}
+                        <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white shadow">Available</span>
+                    </div>
+                    <div class="p-6 flex flex-col h-[calc(100%-12rem)]">
+                        <div class="flex justify-between items-start mb-2 gap-2">
+                            <h3 class="font-display text-xl font-semibold" itemprop="name">{{ item.name }}</h3>
+                            <span class="text-gold-600 font-semibold whitespace-nowrap" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                                <meta itemprop="priceCurrency" content="{{ currency|default:'USD' }}">
+                                <span itemprop="price">{{ currency_symbol }}{{ item.price }}</span>
+                            </span>
+                        </div>
+                        {% if item.description %}
+                        <p class="text-sm text-charcoal-700/60 leading-relaxed mb-3" itemprop="description">{{ item.description }}</p>
+                        {% endif %}
+                        <div class="flex flex-wrap items-center gap-2 text-[11px] text-charcoal-700/50 mb-4">
+                            {% if item.portion_size %}<span><i class="bi bi-rulers"></i> {{ item.portion_size }}</span>{% endif %}
+                            {% if item.calories %}<span><i class="bi bi-fire"></i> {{ item.calories }} kcal</span>{% endif %}
+                            {% if item.preparation_time %}<span><i class="bi bi-clock"></i> {{ item.preparation_time }} min</span>{% endif %}
+                            {% if item.is_vegetarian %}<span class="text-emerald-600">Veg</span>{% endif %}
+                            {% if item.is_vegan %}<span class="text-emerald-600">Vegan</span>{% endif %}
+                            {% if item.is_gluten_free %}<span class="text-emerald-600">GF</span>{% endif %}
+                        </div>
+                        {% if item.allergens %}
+                        <p class="text-[11px] text-amber-700 mb-4"><i class="bi bi-exclamation-triangle"></i> Contains: {{ item.allergens }}</p>
+                        {% endif %}
+                        <div class="mt-auto flex items-center gap-2">
+                            <button type="button"
+                                    class="add-to-cart flex-1 px-4 py-2.5 rounded-full bg-charcoal-900 text-white text-sm font-semibold
+                                           hover:bg-gold-600 transition flex items-center justify-center gap-2"
+                                    data-id="{{ item.id }}"
+                                    data-name="{{ item.name|escapejs }}"
+                                    data-price="{{ item.price }}"
+                                    data-image="{% if item.image %}{{ item.image.url }}{% endif %}">
+                                <i class="bi bi-cart-plus"></i> Add to Order
+                            </button>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-16 text-charcoal-700/60">
+                <i class="bi bi-utensils text-4xl mb-3 block text-gold-500"></i>
+                <p class="font-display text-xl">Our menu is being prepared.</p>
+                <p class="text-sm mt-2">Please check back soon for today's dishes.</p>
+            </div>
+            {% endif %}
         </div>
     </section>
 
@@ -467,6 +457,293 @@
             </div>
         </div>
     </section>
+
+    <!-- ========== CART & CHECKOUT ========== -->
+    <div id="cart-fab" class="fixed bottom-6 right-6 z-40">
+        <button type="button" id="open-cart"
+                class="relative w-14 h-14 rounded-full bg-charcoal-900 text-white shadow-2xl hover:bg-gold-600 transition flex items-center justify-center">
+            <i class="bi bi-bag text-xl"></i>
+            <span id="cart-count"
+                  class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gold-500 text-white text-xs font-bold flex items-center justify-center">0</span>
+        </button>
+    </div>
+
+    <div id="cart-overlay" class="fixed inset-0 bg-black/40 z-40 hidden" onclick="closeCart()"></div>
+    <aside id="cart-drawer"
+           class="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-cream-50 z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="px-6 py-5 border-b border-cream-300 flex items-center justify-between bg-white">
+            <h3 class="font-display text-xl font-semibold">Your Order</h3>
+            <button type="button" onclick="closeCart()" class="text-charcoal-700/60 hover:text-charcoal-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div id="cart-items" class="flex-1 overflow-y-auto px-6 py-4 space-y-3"></div>
+        <div id="cart-empty" class="flex-1 flex items-center justify-center text-charcoal-700/50 hidden">
+            <div class="text-center"><i class="bi bi-bag text-4xl block mb-2 text-gold-500"></i>Your cart is empty</div>
+        </div>
+        <div class="border-t border-cream-300 bg-white px-6 py-5 space-y-3">
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-charcoal-700/70">Subtotal</span>
+                <span class="font-semibold" id="cart-subtotal">{{ currency_symbol }}0.00</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-charcoal-700/70">Tax ({{ restaurant.tax_rate }}%)</span>
+                <span class="font-semibold" id="cart-tax">{{ currency_symbol }}0.00</span>
+            </div>
+            <div class="flex items-center justify-between text-base font-semibold">
+                <span>Total</span>
+                <span id="cart-total">{{ currency_symbol }}0.00</span>
+            </div>
+            <button type="button" id="checkout-btn"
+                    class="w-full px-6 py-3 rounded-full btn-gold text-white font-semibold disabled:opacity-40"
+                    onclick="openCheckout()" disabled>
+                Checkout Securely
+            </button>
+            <button type="button" onclick="clearCart()" class="w-full text-xs text-charcoal-700/50 hover:text-red-600">Clear cart</button>
+        </div>
+    </aside>
+
+    <!-- Checkout modal -->
+    <div id="checkout-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+        <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div class="px-6 py-5 border-b border-cream-200 flex items-center justify-between">
+                <h3 id="checkout-title" class="font-display text-xl font-semibold">Complete Your Order</h3>
+                <button type="button" onclick="closeCheckout()" class="text-charcoal-700/60 hover:text-charcoal-900"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <form id="checkout-form" class="p-6 space-y-4" onsubmit="submitOrder(event)">
+                {% csrf_token %}
+                <div class="grid sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-charcoal-700/70 mb-1">Full name</label>
+                        <input name="name" required class="w-full px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-charcoal-700/70 mb-1">Phone</label>
+                        <input name="phone" required type="tel" class="w-full px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-charcoal-700/70 mb-1">Email (optional, for receipt)</label>
+                    <input name="email" type="email" class="w-full px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-charcoal-700/70 mb-1">Order type</label>
+                    <select name="order_type" class="w-full px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500">
+                        <option value="takeaway">Takeaway (pickup)</option>
+                        <option value="delivery">Delivery</option>
+                        <option value="dine_in">Dine in</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-charcoal-700/70 mb-1">Special instructions</label>
+                    <textarea name="notes" rows="3" class="w-full px-3 py-2.5 rounded-xl border border-cream-300 bg-cream-50 text-sm focus:outline-none focus:border-gold-500" placeholder="Allergies, delivery address, timing..."></textarea>
+                </div>
+                <div id="checkout-error" class="text-sm text-red-600 hidden"></div>
+                <button type="submit" id="submit-order-btn"
+                        class="w-full px-6 py-3 rounded-full btn-gold text-white font-semibold flex items-center justify-center gap-2">
+                    <i class="bi bi-check2-circle"></i> Place Order
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true">
+        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8 text-center">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mx-auto mb-5">
+                <i class="bi bi-check-lg"></i>
+            </div>
+            <h3 class="font-display text-2xl font-bold mb-2">Order Placed!</h3>
+            <p class="text-charcoal-700/60 mb-4">We've received your order and our kitchen is on it.</p>
+            <p class="text-xs uppercase tracking-widest text-charcoal-700/50 mb-1">Order number</p>
+            <p id="success-order-number" class="font-display text-xl font-bold text-gold-600 mb-6"></p>
+            <a id="track-link" href="#" class="inline-flex items-center gap-2 px-6 py-3 rounded-full btn-gold text-white font-semibold">
+                <i class="bi bi-truck"></i> Track Order
+            </a>
+            <button type="button" onclick="doneSuccess()" class="block mx-auto mt-4 text-sm text-charcoal-700/50 hover:text-charcoal-900">Continue browsing</button>
+        </div>
+    </div>
+
+    <!-- Track order page modal? external link handles -->
+
+    <script>
+        // -------- Menu filter --------
+        document.querySelectorAll('.menu-filter').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const f = btn.getAttribute('data-filter');
+                document.querySelectorAll('.menu-filter').forEach(b => {
+                    b.classList.remove('bg-charcoal-900','text-white');
+                    b.classList.add('bg-white','text-charcoal-700','border','border-cream-300');
+                });
+                btn.classList.add('bg-charcoal-900','text-white');
+                btn.classList.remove('bg-white','text-charcoal-700','border-cream-300');
+                document.querySelectorAll('#menu-grid article').forEach(card => {
+                    card.style.display = (f === 'all' || card.getAttribute('data-category') === f) ? '' : 'none';
+                });
+            });
+        });
+
+        // -------- Cart --------
+        const CURRENCY = "{{ currency_symbol|default:"$" }}";
+        const TAX_RATE = {{ restaurant.tax_rate|default:10 }};
+        let cart = JSON.parse(localStorage.getItem('rr_cart') || '[]');
+
+        function saveCart() { localStorage.setItem('rr_cart', JSON.stringify(cart)); renderCart(); }
+
+        function addToCart(data) {
+            const existing = cart.find(i => i.id === data.id);
+            if (existing) existing.qty += 1;
+            else cart.push({ ...data, qty: 1 });
+            saveCart();
+            showToast('Added to your order');
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+            saveCart();
+        }
+
+        function removeItem(id) { cart = cart.filter(i => i.id !== id); saveCart(); }
+        function clearCart() { cart = []; saveCart(); }
+
+        function renderCart() {
+            const itemsEl = document.getElementById('cart-items');
+            const emptyEl = document.getElementById('cart-empty');
+            const count = cart.reduce((a, b) => a + b.qty, 0);
+            document.getElementById('cart-count').textContent = count;
+            const subtotal = cart.reduce((a, b) => a + (parseFloat(b.price) * b.qty), 0);
+            const tax = subtotal * (TAX_RATE / 100);
+            const total = subtotal + tax;
+            itemsEl.innerHTML = '';
+            if (cart.length === 0) { emptyEl.classList.remove('hidden'); } else { emptyEl.classList.add('hidden'); }
+            cart.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm';
+                row.innerHTML = `
+                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-cream-200 flex-shrink-0">
+                        ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover" alt="">` : '<div class="w-full h-full flex items-center justify-center text-gold-500"><i class="bi bi-utensils"></i></div>'}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-sm truncate">${escapeHtml(item.name)}</p>
+                        <p class="text-xs text-gold-600 font-semibold">${CURRENCY}${parseFloat(item.price).toFixed(2)}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <button type="button" onclick="changeQty(${item.id},-1)" class="w-6 h-6 rounded-full border border-cream-300 text-sm flex items-center justify-center hover:bg-cream-200">-</button>
+                            <span class="text-sm font-medium">${item.qty}</span>
+                            <button type="button" onclick="changeQty(${item.id},1)" class="w-6 h-6 rounded-full border border-cream-300 text-sm flex items-center justify-center hover:bg-cream-200">+</button>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-semibold">${CURRENCY}${(parseFloat(item.price)*item.qty).toFixed(2)}</p>
+                        <button type="button" onclick="removeItem(${item.id})" class="text-xs text-red-500 hover:text-red-700 mt-1"><i class="bi bi-trash"></i></button>
+                    </div>
+                `;
+                itemsEl.appendChild(row);
+            });
+            document.getElementById('cart-subtotal').textContent = CURRENCY + subtotal.toFixed(2);
+            document.getElementById('cart-tax').textContent = CURRENCY + tax.toFixed(2);
+            document.getElementById('cart-total').textContent = CURRENCY + total.toFixed(2);
+            const btn = document.getElementById('checkout-btn');
+            btn.disabled = cart.length === 0;
+        }
+
+        function openCart() {
+            document.getElementById('cart-drawer').classList.remove('translate-x-full');
+            document.getElementById('cart-overlay').classList.remove('hidden');
+        }
+        function closeCart() {
+            document.getElementById('cart-drawer').classList.add('translate-x-full');
+            document.getElementById('cart-overlay').classList.add('hidden');
+        }
+        function openCheckout() {
+            if (cart.length === 0) return;
+            document.getElementById('checkout-modal').classList.remove('hidden');
+            document.getElementById('checkout-modal').classList.add('flex');
+        }
+        function closeCheckout() {
+            document.getElementById('checkout-modal').classList.add('hidden');
+            document.getElementById('checkout-modal').classList.remove('flex');
+        }
+        function submitOrder(e) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = document.getElementById('submit-order-btn');
+            btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Placing...';
+            const data = {
+                name: form.name.value.trim(),
+                phone: form.phone.value.trim(),
+                email: form.email.value.trim(),
+                order_type: form.order_type.value,
+                notes: form.notes.value.trim(),
+                items: cart.map(i => ({ menu_item_id: parseInt(i.id), quantity: i.qty, notes: '' }))
+            };
+            const csrftoken = getCookie('csrftoken');
+            fetch('/api/orders/public/create/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify(data)
+            }).then(r => r.json()).then(res => {
+                if (res.success) {
+                    cart = []; saveCart(); closeCheckout(); closeCart();
+                    document.getElementById('success-order-number').textContent = res.order_number;
+                    document.getElementById('track-link').href = res.tracking_url;
+                    const m = document.getElementById('success-modal');
+                    m.classList.remove('hidden'); m.classList.add('flex');
+                } else {
+                    document.getElementById('checkout-error').textContent = res.error || 'Could not place order.';
+                    document.getElementById('checkout-error').classList.remove('hidden');
+                }
+            }).catch(err => {
+                document.getElementById('checkout-error').textContent = 'Network error. Please try again.';
+                document.getElementById('checkout-error').classList.remove('hidden');
+            }).finally(() => {
+                btn.disabled = false; btn.innerHTML = '<i class="bi bi-check2-circle"></i> Place Order';
+            });
+        }
+        function doneSuccess() {
+            const m = document.getElementById('success-modal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+
+        // Toast
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = 'fixed bottom-24 right-6 bg-charcoal-900 text-white px-4 py-2 rounded-full text-sm shadow-lg z-50 animate-fade-in';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2000);
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+        function getCookie(name) {
+            let v = null;
+            if (document.cookie && document.cookie !== '') {
+                document.cookie.split(';').forEach(c => {
+                    c = c.trim();
+                    if (c.substring(0, name.length+1) === (name + '=')) v = decodeURIComponent(c.substring(name.length+1));
+                });
+            }
+            return v;
+        }
+
+        // delegated add-to-cart
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.add-to-cart');
+            if (!btn) return;
+            addToCart({
+                id: btn.getAttribute('data-id'),
+                name: btn.getAttribute('data-name'),
+                price: btn.getAttribute('data-price'),
+                image: btn.getAttribute('data-image'),
+            });
+        });
+        document.getElementById('open-cart').addEventListener('click', openCart);
+
+        renderCart();
+        if (new URLSearchParams(window.location.search).get('open_cart') === '1') openCart();
+    </script>
 
     <!-- ========== CTA ========== -->
     <section class="py-20 bg-charcoal-900 text-white relative overflow-hidden">
